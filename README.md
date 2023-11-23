@@ -2,8 +2,11 @@
 
 rust开发web api的一个demo，新手学习入门
 
+库搜索
+https://docs.rs/
 
-install rust and install cargo
+install rust 
 
-run
+install cargo
+
 cargo run

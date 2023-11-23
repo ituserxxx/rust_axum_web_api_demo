@@ -8,11 +8,15 @@ pub struct HelloRes {
 }
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
-pub struct AddUserReq {
+pub struct AddHelloReq {
     #[validate(length(min = 1, max = 15, message = "用户名必填"))]
-    pub name: Option<String>,
-    #[validate(required,length(min = 1, message = "用户名必填"))]
-    pub phone: Option<String>,
+    pub name: String,
+    #[validate(length(min = 1,max = 11, message = "用户名必填"))]
+    pub phone: String,
 }
 
-
+#[derive(Debug,Deserialize, Serialize)]
+pub struct AddHelloRes {
+    pub name: String,
+    pub age: String,
+}

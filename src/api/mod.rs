@@ -1,3 +1,3 @@
 pub mod resp;
-pub mod user;
-pub mod hello;
+pub mod user_api;
+pub mod hello_api;

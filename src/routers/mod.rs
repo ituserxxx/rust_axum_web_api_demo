@@ -10,8 +10,9 @@ use crate::{
 
 pub fn init() -> Router {
     let hello_router = Router::new()
-        .route("/ph", post(hello::hello))
-        .route("/gh", get(hello::hello));
+        .route("/post", post(hello::hello))
+        .route("/get", get(hello::hello))
+        .route("/add", post(hello::add));
 
     let user_router = Router::new()
         .route("/ph", get(user::hello))
@@ -19,7 +20,7 @@ pub fn init() -> Router {
 
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
-        .nest("/h", hello_router)
+        .nest("/hello", hello_router)
         .nest("/v1", user_router);
 }
 
