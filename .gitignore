@@ -1,4 +1,5 @@
 .idea/
+mysql
 target/
 # Build and Release Folders
 bin-debug/
