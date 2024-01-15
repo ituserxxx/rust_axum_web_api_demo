@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 mod routers;
 mod controllers;
 mod api;
-mod db;
+// mod db;
 #[tokio::main]
 async fn main() {
     let addr = SocketAddr::from(([0, 0, 0, 0], 8001));

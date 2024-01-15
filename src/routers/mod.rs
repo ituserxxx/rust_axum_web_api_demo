@@ -5,7 +5,7 @@ use axum::{
 
 use crate::{
     controllers::hello,
-    controllers::user,
+//     controllers::user,
 };
 
 pub fn init() -> Router {
@@ -13,15 +13,15 @@ pub fn init() -> Router {
         .route("/post", post(hello::hello))
         .route("/get", get(hello::hello))
         .route("/add", post(hello::add));
-
-    let user_router = Router::new()
-        .route("/ph", get(user::hello))
-        .route("/user/add", post(user::add));
-
+//
+//     let user_router = Router::new()
+//         .route("/ph", get(user::hello))
+//         .route("/user/add", post(user::add));
+//
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
         .nest("/hello", hello_router)
-        .nest("/v1", user_router);
+//         .nest("/v1", user_router);
 }
 
 

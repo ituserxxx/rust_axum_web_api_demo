@@ -6,7 +6,7 @@ services:
     container_name: naiva_mysql_cn
     restart: on-failure
     ports:
-      - "3306:3306"
+      - "33069:3306"
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -27,7 +27,7 @@ services:
     container_name: naiva_mysql_admin_cn
     restart: on-failure
     ports:
-      - "6002:80"
+      - "33068:80"
     environment:
       - PMA_ARBITRARY=0
       - MYSQL_USER=root
