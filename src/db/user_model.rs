@@ -11,19 +11,19 @@ struct User {
 }
 
 // 插入数据
-fn insert_user() -> QueryResult<usize> {
-
-    let new_user = User {
-        id: None,
-        name: "name".to_string(),
-        passwd: "name".to_string(),
-        phone: "phone".to_string(),
-    };
-
-    diesel::insert_into(user)
-        .values(&new_user)
-        .execute(&*CONNECTION)
-}
+// fn insert_user() -> QueryResult<usize> {
+//
+//     let new_user = User {
+//         id: None,
+//         name: "name".to_string(),
+//         passwd: "name".to_string(),
+//         phone: "phone".to_string(),
+//     };
+//
+//     diesel::insert_into(user)
+//         .values(&new_user)
+//         .execute(&*CONNECTION)
+// }
 
 // // 查询数据
 // fn get_users() -> QueryResult<Vec<User>> {

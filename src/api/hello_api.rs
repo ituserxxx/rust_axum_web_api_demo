@@ -7,7 +7,7 @@ pub struct HelloRes {
     pub age: u32,
 }
 
-#[derive(Debug, Validate, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct AddHelloReq {
     #[validate(length(min = 1, max = 15, message = "用户名必填"))]
     pub name: String,
