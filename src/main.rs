@@ -17,9 +17,23 @@ struct User {
 async fn main() -> Result<(), sqlx::Error> {
     let pool = MySqlPoolOptions::new().connect("mysql://naive_admin:naive_admin_pass@localhost:33069/naive_admin").await?;
 
-    let update_result = fetch_user_by_id(&pool,88).await?;
-
-   println!("update result: {:?}", update_result);
+    let update_result = fetch_user_by_id(&pool,5).await;
+//
+//    println!("update result: {:?}", update_result);
+    match  update_result {
+        Ok(user) => {
+            // 处理成功获取用户信息的情况
+            println!("Successfully fetched user: {:?}", user);
+            // 获取 name 字段的值
+            let username = user.username;
+            // 打印字段值
+            println!("username: {}", username);
+        }
+        Err(err) => {
+            // 处理查询失败的情况
+            eprintln!("Failed to fetch user: {}", err);
+        }
+    }
       Ok(())
 // let user = User {
 //         username: "John10".to_string(),
@@ -99,24 +113,33 @@ async fn main() -> Result<(), sqlx::Error> {
 
 }
 
+// fetch_user_by_id 调用示例
+/*
+    let update_result = fetch_user_by_id(&pool,5).await;
+    match  update_result {
+        Ok(user) => {
+            // 处理成功获取用户信息的情况
+            println!("Successfully fetched user: {:?}", user);
+            // 获取 name 字段的值
+            let username = user.username;
+            // 打印字段值
+            println!("username: {}", username);
+        }
+        Err(err) => {
+            // 处理查询失败的情况
+            eprintln!("Failed to fetch user: {}", err);
+        }
+    }
+*/
 async fn fetch_user_by_id(pool: &MySqlPool, id: i64) -> Result<User, sqlx::Error> {
     let result = sqlx::query_as::<_, User>("SELECT * FROM user where id = ?")
             .bind(id)
             .fetch_one(pool)
             .await?;
     println!("{:#?}", result);
-    Ok(result)
+   Ok(result)
 }
-// async fn fetch_user_by_id(pool: &MySqlPool, id: i64) -> Result<Option<User>, sqlx::Error> {
-//       let result = sqlx::query_as::<_, User>("SELECT * FROM user where id = ?")
-//                 .bind(id)
-//                 .fetch_one(pool)
-//                 .await?;
-//       match result {
-//           Some(row) => Ok(row.to_user()),
-//           None => Ok(()),
-//       }
-// }
+
 
 async fn fetch_all_users(pool: &MySqlPool) -> Result<Vec<User>, sqlx::Error> {
     let rows = sqlx::query_as::<_, User>("SELECT * FROM user")
