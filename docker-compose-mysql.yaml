@@ -8,7 +8,7 @@ services:
     ports:
       - "33069:3306"
     volumes:
-      - ./mysql/data:/var/lib/mysql
+      - /data/docker_volumn/mysql:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - TZ=Asia/Shanghai
