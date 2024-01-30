@@ -13,6 +13,6 @@ validator = { version = "0.16", features = ["derive"] }
 lazy_static = "1.4"
 chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.15"
-sqlx = { version = "0.6", features = ["mysql", "runtime-tokio-rustls","time"] }
+sqlx = { version = "0.6", features = ["mysql", "runtime-tokio-native-tls","time"] }
 mysql="24"
 md-5 = "0.8"
