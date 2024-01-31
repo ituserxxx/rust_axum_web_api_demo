@@ -2,16 +2,24 @@ use axum::extract::Json;
 use validator::Validate;
 use crate::api::resp::{ApiResponse};
 use crate::api::user_api;
-mod db {
-    pub mod user_model;
-}
-use db::user_model;
-//
-pub async fn list() -> Json<ApiResponse<user_api::user_list_res>> {
-    let ul =  user_model::fetch_all_users();
 
-    let api_response = ApiResponse::new(0, Some(user_api::user_list_res { list: ul }), "ok");
-    Json(api_response)
+use crate::{
+    db::user_model,
+};
+
+// 获取列表
+pub async fn list() -> Json<ApiResponse<user_api::UserListRes>> {
+    match  user_model::fetch_all_users().await {
+        Ok(list) => {
+            // 处理成功获取用户信息的情况
+            return Json(ApiResponse::succ(Some(user_api::UserListRes {list:list})))
+        }
+        Err(err) => {
+            // 处理查询失败的情况
+            let error_msg = format!("err {}", err);
+            return Json(ApiResponse::err(&error_msg))
+        }
+    }
 }
 // pub async fn hello() -> Json<ApiResponse<user_api::HelloRes>> {
 //     let uresp = user_api::HelloRes {

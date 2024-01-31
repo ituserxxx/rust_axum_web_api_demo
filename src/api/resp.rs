@@ -23,7 +23,7 @@ impl<T> ApiResponse<T> {
             msg: "ok".to_string(),
         }
     }
-    pub fn err(  msg: &str) -> Self {
+    pub fn err(msg: &str) -> Self {
         ApiResponse {
             code:500,
             data:None,

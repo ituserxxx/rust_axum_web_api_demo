@@ -1,15 +1,16 @@
+pub mod user_model;
 use dotenv::dotenv;
 use std::env;
 
-use sqlx::mysql::{ MySqlPoolOptions,MySqlPool};
+use sqlx::mysql::{ MySqlPoolOptions};
 use std::sync::{Arc, Mutex};
 use lazy_static::lazy_static;
 
-
+// 定义懒加载全局变量
 lazy_static! {
     static ref DB_POOL: Arc<Mutex<Option<sqlx::MySqlPool>>> = Arc::new(Mutex::new(None));
 }
-
+// 连接数据库
 async fn init_pool() -> Result<sqlx::MySqlPool, sqlx::Error> {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");

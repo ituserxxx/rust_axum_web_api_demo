@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
-mod db {
-    pub mod user_model; // 不要在此处加上分号
-}
-use db::user_model;
-
+use crate::{
+    db::user_model,
+};
 
 //
 // #[derive(Debug, Deserialize, Serialize)]
@@ -30,6 +28,6 @@ use db::user_model;
 // }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct user_list_res {
+pub struct UserListRes {
     pub list: Vec<user_model::User>,
 }
