@@ -4,6 +4,9 @@ use time::OffsetDateTime;
 use std::clone::Clone;
 use sqlx::mysql::{ MySqlPoolOptions,MySqlPool,MySqlQueryResult};
 
+use std::sync::{Arc, Mutex};
+use lazy_static::lazy_static;
+
 #[derive(Debug, Clone, sqlx::FromRow)]
 struct User {
     username : String,
@@ -13,28 +16,60 @@ struct User {
     updateTime : OffsetDateTime,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+lazy_static! {
+    static ref DB_POOL: Arc<Mutex<Option<sqlx::MySqlPool>>> = Arc::new(Mutex::new(None));
+}
+async fn init_pool() -> Result<sqlx::MySqlPool, sqlx::Error> {
     let pool = MySqlPoolOptions::new().connect("mysql://naive_admin:naive_admin_pass@localhost:33069/naive_admin").await?;
+    Ok(pool)
+}
+
+async fn shutdown_pool() -> Result<(), sqlx::Error> {
+    if let Some(pool) = DB_POOL.lock().unwrap().take() {
+        pool.close().await;
+    }
+    Ok(())
+}
+#[tokio::main]
+async fn main() {
+  // 初始化连接池
+    let pool = init_pool().await.unwrap();
+
+    // 存储连接池到全局变量
+    *DB_POOL.lock().unwrap() = Some(pool);
+
+    // 克隆 Arc<Mutex<Option<MySqlPool>>> 以便在路由处理程序中使用
+    let db_pool = DB_POOL.clone();
+
+
+     ope().await;
+     
+     // 释放连接池
+     shutdown_pool().await.unwrap();
+
+}
+async fn ope() -> Result<(), sqlx::Error> {
+    // 使用连接池进行数据库查询
+       let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
+
+//     let pool = MySqlPoolOptions::new().connect("mysql://naive_admin:naive_admin_pass@localhost:33069/naive_admin").await?;
 
     let update_result = fetch_user_by_id(&pool,5).await;
-//
-//    println!("update result: {:?}", update_result);
     match  update_result {
         Ok(user) => {
             // 处理成功获取用户信息的情况
-            println!("Successfully fetched user: {:?}", user);
+            println!("1111 Successfully fetched user: {:?}", user);
             // 获取 name 字段的值
             let username = user.username;
             // 打印字段值
-            println!("username: {}", username);
+            println!("2222username: {:?}", username);
         }
         Err(err) => {
             // 处理查询失败的情况
-            eprintln!("Failed to fetch user: {}", err);
+            println!("Failed to fetch user: {:?}", err);
         }
     }
-      Ok(())
+    Ok(())
 // let user = User {
 //         username: "John10".to_string(),
 //         password: tools::md5_crypto("123456".to_string()),
@@ -136,7 +171,6 @@ async fn fetch_user_by_id(pool: &MySqlPool, id: i64) -> Result<User, sqlx::Error
             .bind(id)
             .fetch_one(pool)
             .await?;
-    println!("{:#?}", result);
    Ok(result)
 }
 
