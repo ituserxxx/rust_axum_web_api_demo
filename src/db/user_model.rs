@@ -9,11 +9,11 @@ use chrono::{DateTime, Utc};
 #[allow(non_snake_case)]
 #[derive(Debug,Clone, Deserialize, Serialize,  sqlx::FromRow)]
 pub struct User {
-    username    : String,
-    password    : String,
-    enable      : i8,
-    createTime  : DateTime<Utc>,
-    updateTime  : DateTime<Utc>,
+    pub username    : String,
+    pub password    : String,
+    pub enable      : i8,
+    pub createTime  : DateTime<Utc>,
+    pub updateTime  : DateTime<Utc>,
 }
 
 // 查询一条记录-通过 id

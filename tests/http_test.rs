@@ -1,5 +1,8 @@
 use reqwest::StatusCode;
 use reqwest::Client;
+use mysql::serde_json;
+
+
 const URL: &str = "http://127.0.0.1:8001/";
 
 //详细 test 请求加参数 RUST_BACKTRACE=full cargo test --test http_test user_list
@@ -18,7 +21,7 @@ async fn root() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
+// curl -X POST -H "Content-Type: application/json" http://127.0.0.1:8001/user/list
 // cargo test --test http_test user_list
 #[tokio::test]
 async fn user_list() {
@@ -26,6 +29,29 @@ async fn user_list() {
     let body = ""; // POST 请求的 body 数据
     let response = client.post(format!("{}{}", URL,"user/list"))
         .body(body)
+        .send()
+        .await
+        .expect("Failed to send POST request");
+    let status_code = response.status();
+    println!("Response status code: {}", status_code);
+
+    let response_body = response.text().await.expect("Failed to read response body");
+    println!("Response body: {}", response_body); // 打印响应内容
+
+    assert!(status_code.is_success(), "Request failed with status code: {}", status_code);
+}
+
+// curl -X POST -H "Content-Type: application/json" -d '{"username": "x", "password": "x"}' http://127.0.0.1:8001/user/add
+// cargo test --test http_test user_add
+#[tokio::test]
+async fn user_add() {
+    let client = Client::new();
+    let body = serde_json::json!({
+            "password": "123456"
+        });
+    let response = client.post(format!("{}{}", URL,"user/add"))
+        .header(reqwest::header::CONTENT_TYPE, "application/json")
+        .body(body.to_string())
         .send()
         .await
         .expect("Failed to send POST request");
