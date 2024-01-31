@@ -1,13 +1,34 @@
-extern crate diesel;
-use diesel::prelude::*;
-
-use lazy_static::lazy_static;
-use std::sync::Mutex;
+use dotenv::dotenv;
 use std::env;
+
+use sqlx::mysql::{ MySqlPoolOptions,MySqlPool};
+use std::sync::{Arc, Mutex};
+use lazy_static::lazy_static;
 
 
 lazy_static! {
-
-    static ref DATABASE_URL: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    static ref CONNECTION: Mutex<MysqlConnection> = Mutex::new(MysqlConnection::establish(&DATABASE_URL).expect("Failed to connect to database"));
+    static ref DB_POOL: Arc<Mutex<Option<sqlx::MySqlPool>>> = Arc::new(Mutex::new(None));
 }
+
+async fn init_pool() -> Result<sqlx::MySqlPool, sqlx::Error> {
+    dotenv().ok();
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = MySqlPoolOptions::new().connect(&database_url).await?;
+    Ok(pool)
+}
+
+// 释放连接池
+pub async fn mysql_disconnect() -> Result<(), sqlx::Error> {
+    if let Some(pool) = DB_POOL.lock().unwrap().take() {
+        pool.close().await;
+    }
+    Ok(())
+}
+
+pub async  fn  mysql_connect() {
+    // 初始化连接池
+    let pool = init_pool().await.unwrap();
+    // 存储连接池到全局变量
+    *DB_POOL.lock().unwrap() = Some(pool);
+}
+
