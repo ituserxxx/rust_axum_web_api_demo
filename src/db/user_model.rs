@@ -1,29 +1,41 @@
 use std::clone::Clone;
-use sqlx::mysql::{ MySqlPool,MySqlQueryResult};
-// 引入全局变量
-use super::DB_POOL;
-
+use sqlx::mysql::MySqlQueryResult;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+
+// 引入全局变量
+use super::DB_POOL;
 
 #[allow(non_snake_case)]
 #[derive(Debug,Clone, Deserialize, Serialize,  sqlx::FromRow)]
 pub struct User {
+    pub id          : i64,
     pub username    : String,
     pub password    : String,
     pub enable      : i8,
     pub createTime  : DateTime<Utc>,
     pub updateTime  : DateTime<Utc>,
 }
-
+impl Default for User {
+    fn default() -> Self {
+        User {
+            id          :0,
+            username    :String::default(),
+            password    :String::default(),
+            enable      :0,
+            createTime  : Utc::now(),
+            updateTime  : Utc::now(),
+        }
+    }
+}
 // 查询一条记录-通过 id
-pub async fn fetch_user_by_id(id: i64) -> Result<User, sqlx::Error> {
+pub async fn fetch_user_by_id(id: i64) -> Result<Option<User>, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
     let result = sqlx::query_as::<_, User>("SELECT * FROM user where id = ?")
             .bind(id)
-            .fetch_one(&pool)
+            .fetch_optional(&pool)
             .await?;
-   Ok(result)
+    Ok(result)
 }
 
 // 查询多条记录

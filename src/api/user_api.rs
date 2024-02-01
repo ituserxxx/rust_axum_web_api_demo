@@ -4,7 +4,7 @@ use crate::{
     db::user_model,
 };
 
-
+// 新增用户 test ok
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct AddUserReq {
     #[serde(default)]
@@ -21,7 +21,20 @@ pub struct AddUserResp {
 }
 
 // test ok
+// 用户列表
 #[derive(Debug, Deserialize, Serialize)]
 pub struct UserListRes {
     pub list: Vec<user_model::User>,
+}
+
+// 获取用户详情
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct UserInfoReq {
+    #[serde(default)]
+    #[validate(required)]
+    pub id:  Option<i64>,
+}
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UserInfoRes {
+    pub info: user_model::User,
 }

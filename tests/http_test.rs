@@ -41,7 +41,7 @@ async fn user_list() {
     assert!(status_code.is_success(), "Request failed with status code: {}", status_code);
 }
 
-// curl -X POST -H "Content-Type: application/json" -d '{"username": "x", "password": "x"}' http://127.0.0.1:8001/user/add
+// curl -X POST -H "Content-Type: application/json" -d '{"username": "xx", "password": "xx"}' http://127.0.0.1:8001/user/add
 // cargo test --test http_test user_add
 #[tokio::test]
 async fn user_add() {
@@ -50,6 +50,29 @@ async fn user_add() {
             "password": "123456"
         });
     let response = client.post(format!("{}{}", URL,"user/add"))
+        .header(reqwest::header::CONTENT_TYPE, "application/json")
+        .body(body.to_string())
+        .send()
+        .await
+        .expect("Failed to send POST request");
+    let status_code = response.status();
+    println!("Response status code: {}", status_code);
+
+    let response_body = response.text().await.expect("Failed to read response body");
+    println!("Response body: {}", response_body); // 打印响应内容
+
+    assert!(status_code.is_success(), "Request failed with status code: {}", status_code);
+}
+
+// curl -X POST -H "Content-Type: application/json" -d '{"id": 0}' http://127.0.0.1:8001/user/info
+// cargo test --test http_test user_info
+#[tokio::test]
+async fn user_info() {
+    let client = Client::new();
+    let body = serde_json::json!({
+            "id": 1,
+        });
+    let response = client.post(format!("{}{}", URL,"user/info"))
         .header(reqwest::header::CONTENT_TYPE, "application/json")
         .body(body.to_string())
         .send()

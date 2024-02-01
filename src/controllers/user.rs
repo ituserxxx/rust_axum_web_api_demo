@@ -24,6 +24,7 @@ pub async fn list() -> Json<ApiResponse<user_api::UserListRes>> {
     }
 }
 
+// 新增用户
 pub async fn add(Json(req): Json<user_api::AddUserReq>) -> Json<ApiResponse<user_api::AddUserResp>> {
     if let Err(error) = req.validate() {
         return Json( ApiResponse::new(400, None, &format!("{}", error)))
@@ -32,6 +33,7 @@ pub async fn add(Json(req): Json<user_api::AddUserReq>) -> Json<ApiResponse<user
     let password = req.password.unwrap_or_default();
     let new_time = Utc::now();
     let insert_user = user_model::User{
+        id          :0,
         username    : username.to_string(),
         password    : tools::md5_crypto(password.to_string()),
         enable      :1,
@@ -55,4 +57,29 @@ pub async fn add(Json(req): Json<user_api::AddUserReq>) -> Json<ApiResponse<user
             return Json(ApiResponse::err( &error_msg))
         }
     }
+}
+
+// 获取用户详情
+pub async fn info(Json(req): Json<user_api::UserInfoReq>) -> Json<ApiResponse<user_api::UserInfoRes>> {
+    if let Err(error) = req.validate() {
+        return Json( ApiResponse::new(400, None, &format!("{}", error)))
+    }
+    let id = req.id.unwrap_or_default();
+
+    let get_uinfo_result = user_model::fetch_user_by_id(id).await;
+    let uinfo = match get_uinfo_result {
+        Ok(Some(user)) =>user,
+        Ok(None) => {
+            return Json(ApiResponse::err( &"用户信息不存在"))
+        },
+        Err(err)=>{
+            let error_msg = format!("获取用户信息失败:{}", err);
+            return Json(ApiResponse::err( &error_msg))
+        }
+    };
+    // 初始化返回结构体
+    let rp = user_api::UserInfoRes {
+        info:uinfo,
+    };
+    return Json( ApiResponse::succ(Some(rp)))
 }
