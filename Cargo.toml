@@ -17,6 +17,7 @@ sqlx = { version = "0.6", features = ["mysql", "runtime-tokio-native-tls","time"
 mysql="24"
 md-5 = "0.8"
 reqwest = "0.11"
+jsonwebtoken = "9.2"
 
 [[test]]
 name = "http_test"
