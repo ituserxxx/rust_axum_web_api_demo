@@ -43,7 +43,6 @@ pub async fn add(Json(req): Json<user_api::AddUserReq>) -> Json<ApiResponse<user
     match user_model::add_user_by_struct(insert_user).await {
         Ok(insert_res) => {
             if insert_res.rows_affected() > 0 {
-                println!("用户插入成功");
                 // 初始化返回结构体
                 let rp = user_api::AddUserResp {
                     id:insert_res.last_insert_id(),
@@ -67,6 +66,7 @@ pub async fn info(Json(req): Json<user_api::UserInfoReq>) -> Json<ApiResponse<us
     let id = req.id.unwrap_or_default();
 
     let get_uinfo_result = user_model::fetch_user_by_id(id).await;
+
     let uinfo = match get_uinfo_result {
         Ok(Some(user)) =>user,
         Ok(None) => {
@@ -82,4 +82,26 @@ pub async fn info(Json(req): Json<user_api::UserInfoReq>) -> Json<ApiResponse<us
         info:uinfo,
     };
     return Json( ApiResponse::succ(Some(rp)))
+}
+// 获取用户详情
+pub async fn del(Json(req): Json<user_api::UserDelReq>) -> Json<ApiResponse<user_api::UserDelRes>> {
+    if let Err(error) = req.validate() {
+        return Json( ApiResponse::new(400, None, &format!("{}", error)))
+    }
+    let id = req.id.unwrap_or_default();
+
+    let del_u_result = user_model::delete_user_by_id(id).await;
+
+     match del_u_result {
+        Ok(del_res) => {
+           if del_res.rows_affected() > 0 {
+               return Json( ApiResponse::succ(Some(user_api::UserDelRes{})))
+           }
+           return Json(ApiResponse::err( &"删除失败"))
+       },
+        Err(err)=>{
+            let error_msg = format!("用户信息不存在:{}", err);
+            return Json(ApiResponse::err( &error_msg))
+        }
+    };
 }

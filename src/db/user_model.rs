@@ -60,13 +60,13 @@ pub async fn update_username_by_id( username: &str, id: i64) -> Result<MySqlQuer
 }
 
 // 删除记录-通过 id
-pub async fn delete_user_by_id( id: i64) -> Result<(),sqlx::Error> {
+pub async fn delete_user_by_id( id: i64) -> Result< MySqlQueryResult,sqlx::Error> {
      let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
-     let _ = sqlx::query("delete from user where id = ?")
+     let result = sqlx::query("delete from user where id = ?")
             .bind(id)
             .execute(&pool)
-            .await;
-     Ok(())
+            .await?;
+     Ok(result)
      // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
 }
 

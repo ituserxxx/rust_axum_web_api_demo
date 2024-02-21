@@ -38,3 +38,15 @@ pub struct UserInfoReq {
 pub struct UserInfoRes {
     pub info: user_model::User,
 }
+
+// 删除用户
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct UserDelReq {
+    #[serde(default)]
+    #[validate(required)]
+    pub id:  Option<i64>,
+}
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UserDelRes {
+
+}

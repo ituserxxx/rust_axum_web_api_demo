@@ -12,6 +12,7 @@ pub fn init() -> Router {
     let user_router = Router::new()
         .route("/list", post(user::list))
         .route("/info", post(user::info))
+        .route("/del", post(user::del))
         .route("/add", post(user::add));
 
     return Router::new()

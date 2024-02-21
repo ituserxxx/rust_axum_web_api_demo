@@ -1,11 +1,10 @@
 use std::net::SocketAddr;
 
-mod tools;
-mod routers;
-mod controllers;
 mod api;
+mod controllers;
 mod db;
-
+mod routers;
+mod tools;
 
 #[tokio::main]
 async fn main() {

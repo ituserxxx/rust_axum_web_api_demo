@@ -64,7 +64,7 @@ async fn user_add() {
     assert!(status_code.is_success(), "Request failed with status code: {}", status_code);
 }
 
-// curl -X POST -H "Content-Type: application/json" -d '{"id": 0}' http://127.0.0.1:8001/user/info
+// curl -X POST -H "Content-Type: application/json" -d '{"id": 10}' http://127.0.0.1:8001/user/info
 // cargo test --test http_test user_info
 #[tokio::test]
 async fn user_info() {
@@ -73,6 +73,29 @@ async fn user_info() {
             "id": 1,
         });
     let response = client.post(format!("{}{}", URL,"user/info"))
+        .header(reqwest::header::CONTENT_TYPE, "application/json")
+        .body(body.to_string())
+        .send()
+        .await
+        .expect("Failed to send POST request");
+    let status_code = response.status();
+    println!("Response status code: {}", status_code);
+
+    let response_body = response.text().await.expect("Failed to read response body");
+    println!("Response body: {}", response_body); // 打印响应内容
+
+    assert!(status_code.is_success(), "Request failed with status code: {}", status_code);
+}
+
+// curl -X POST -H "Content-Type: application/json" -d '{"id": 11}' http://127.0.0.1:8001/user/del
+// cargo test --test http_test user_del
+#[tokio::test]
+async fn user_del() {
+    let client = Client::new();
+    let body = serde_json::json!({
+            "id": 1,
+        });
+    let response = client.post(format!("{}{}", URL,"user/del"))
         .header(reqwest::header::CONTENT_TYPE, "application/json")
         .body(body.to_string())
         .send()
