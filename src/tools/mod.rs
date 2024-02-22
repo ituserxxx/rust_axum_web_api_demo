@@ -2,6 +2,8 @@
 use md5::Md5;
 use md5::Digest;
 
+pub mod jwt;
+
 pub fn md5_crypto(password:String) ->String{
     let hashed_password = format!("{:x}", Md5::digest(password.as_bytes()));
     hashed_password

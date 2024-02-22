@@ -17,8 +17,9 @@ async fn jwt_en() {
     // my_claims is a struct that implements Serialize
     // This will create a JWT using HS256 as algorithm
     let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret("secret".as_ref())).unwrap();
-     eprintln!("token: {:?}", token);
+     println!("token: {:?}", token);
 
     let token_message = decode::<Claims>(&token, &DecodingKey::from_secret("secret".as_ref()), &Validation::new(Algorithm::HS256));
-    eprintln!("token_message: {:?}", token_message);
+    println!("token_message: {:?}", token_message);
+
 }

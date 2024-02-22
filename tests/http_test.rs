@@ -2,6 +2,8 @@ use reqwest::StatusCode;
 use reqwest::Client;
 use mysql::serde_json;
 
+// curl -X GET -H "Content-Type: application/json" http://127.0.0.1:8001/hello/jwt_en
+curl -X GET -H "Content-Type: application/json" "http://127.0.0.1:8001/hello/jwt_dn?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOjIxLCJleHAiOjE3MDg1NzE2MTZ9.rJIYbJWbFElRycr3yTY-RGusIRhrayS_kXBKhXKEA0E"
 
 const URL: &str = "http://127.0.0.1:8001/";
 
