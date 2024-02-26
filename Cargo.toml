@@ -18,6 +18,10 @@ mysql="24"
 md-5 = "0.8"
 reqwest = "0.11"
 jsonwebtoken = "9.2"
+tower = "0.4.13"
+tower-http = { version = "0.5.2", features = ["full"] }
+serde_json = "1.0.114"
+
 
 [[test]]
 name = "http_test"

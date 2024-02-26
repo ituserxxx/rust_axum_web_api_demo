@@ -3,7 +3,10 @@ use reqwest::Client;
 use mysql::serde_json;
 
 // curl -X GET -H "Content-Type: application/json" http://127.0.0.1:8001/hello/jwt_en
-// curl -X POST -H "Content-Type: application/json" -d '{"token": ""}' "http://127.0.0.1:8001/hello/jwt_dn?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOjIxLCJleHAiOjE3MDg1NzE2MTZ9.rJIYbJWbFElRycr3yTY-RGusIRhrayS_kXBKhXKEA0E"
+// curl -X POST -H "Content-Type: application/json" -d '{"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOjIxLCJleHAiOjE3MDg5MzI5MDZ9.G3EPiI-hs8iRV8zMytR0Yk66nXuQ30KE280xtTMTUEg"}' "http://127.0.0.1:8001/hello/jwt_dn"
+
+
+// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" http://127.0.0.1:8061/h/a
 
 const URL: &str = "http://127.0.0.1:8001/";
 
