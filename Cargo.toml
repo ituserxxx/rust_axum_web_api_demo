@@ -21,6 +21,8 @@ jsonwebtoken = "9.2"
 tower = "0.4.13"
 tower-http = { version = "0.5.2", features = ["full"] }
 serde_json = "1.0.114"
+axum-extra = "0.9.2"
+thiserror = "1.0.57"
 
 
 [[test]]
