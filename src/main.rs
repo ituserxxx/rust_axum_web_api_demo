@@ -71,31 +71,36 @@ pub struct UserInfoReq {
     pub id:  Option<i64>,
 }
 
-pub async fn handler(
-    // extract the current user, set by the middleware
-    Extension(current_user): Extension<CurrentUser>,
-//     req: Request,
-    Json(req): Json<UserInfoReq>
-) ->  Json<Option<CurrentUser>>{
-// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/
+pub async fn handler(Extension(current_user): Extension<CurrentUser>,Json(req): Json<UserInfoReq>) ->  Json<Option<CurrentUser>>{
     if let Err(error) = req.validate() {
             return Json(Some(CurrentUser{id:-1}));
         }
       println!("req: {:?}", req);
       println!("Current user: {:?}", current_user);
-
+      return Json(Some(CurrentUser{id:123}));
+}
+pub async fn handler2(Json(req): Json<UserInfoReq>) ->  Json<Option<CurrentUser>>{
+    if let Err(error) = req.validate() {
+            return Json(Some(CurrentUser{id:-1}));
+        }
+      println!("req: {:?}", req);
+//       println!("Current user: {:?}", current_user);
       return Json(Some(CurrentUser{id:123}));
 }
 
-
 #[tokio::main]
 async fn main() {
-// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/
+// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/1
+// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/2
+// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/3
 // curl -X GET -H "Content-Type: application/json"  -d '{"name":"xx1"}' http://127.0.0.1:8061/
 
     let app = Router::new()
-        .route("/", get(handler))
-        .layer(middleware::from_fn(auth));
+        .route("/1", get(handler))
+        .route("/3", get(handler))
+        .layer(middleware::from_fn(auth))
+        .route("/2", get(handler2))
+        ;
     let routerInit = app.into_make_service();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8061").await.unwrap();
