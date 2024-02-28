@@ -1,20 +1,20 @@
 
 use axum::{
      Router, http,
-    http::StatusCode,
     routing::get,
-    response::{IntoResponse, Response},
     middleware::{self, Next},
     extract::{Request, Extension},
     extract::rejection::JsonRejection,
+  Json,
+    response::{IntoResponse, Response},
+    body::Body,
+    http::StatusCode,
 };
 
-use serde::{Deserialize, Serialize};
 use axum_extra::extract::WithRejection;
 use thiserror::Error;
-use axum::Json;
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug, Deserialize, Serialize)]
 pub struct CurrentUser {
     pub id: i64,
 }
@@ -24,7 +24,21 @@ pub struct JwtDnReq {
     #[serde(default)]
     pub name: Option<String>,
 }
-async fn auth(mut req: Request, next: Next) -> Result<Response, StatusCode> {
+
+async fn auth(req: Request, next: Next) -> Response {
+    match handle_auth(req, next).await {
+        Ok(response) => response,
+        Err(status_code) => {
+            let body = format!("Error: {}", status_code);
+            Response::builder()
+                .status(status_code)
+                .body(body.into())
+                .unwrap()
+        }
+    }
+}
+
+async fn handle_auth(mut req: Request, next: Next) -> Result<Response, StatusCode> {
     let auth_header = req.headers()
         .get(http::header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
@@ -34,15 +48,12 @@ async fn auth(mut req: Request, next: Next) -> Result<Response, StatusCode> {
     } else {
         return Err(StatusCode::UNAUTHORIZED);
     };
-
     if let Some(current_user) = authorize_current_user(auth_header).await {
-        // insert the current user into a request extension so the handler can
-        // extract it
         req.extensions_mut().insert(current_user);
-
         Ok(next.run(req).await)
     } else {
-        Err(StatusCode::UNAUTHORIZED)
+         return Err(StatusCode::UNAUTHORIZED);
+
     }
 }
 
@@ -50,23 +61,37 @@ async fn authorize_current_user(auth_token: &str) -> Option<CurrentUser> {
     return Some(CurrentUser{id:1});
 }
 
-async fn handler(
-    // extract the current user, set by the middleware
-    Extension(current_user): Extension<CurrentUser>,
-    req: Request,
-) {
-      println!("req: {:?}", req);
-      println!("Current user: {:?}", current_user);
+use serde::{Deserialize, Serialize};
+use validator::Validate;
+
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct UserInfoReq {
+    #[serde(default)]
+    #[validate(required)]
+    pub id:  Option<i64>,
 }
 
+pub async fn handler(
+    // extract the current user, set by the middleware
+    Extension(current_user): Extension<CurrentUser>,
+//     req: Request,
+    Json(req): Json<UserInfoReq>
+) ->  Json<Option<CurrentUser>>{
+// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/
+    if let Err(error) = req.validate() {
+            return Json(Some(CurrentUser{id:-1}));
+        }
+      println!("req: {:?}", req);
+      println!("Current user: {:?}", current_user);
 
+      return Json(Some(CurrentUser{id:123}));
+}
 
 
 #[tokio::main]
 async fn main() {
-// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"name":"xx1"}' http://127.0.0.1:8061/
+// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/
 // curl -X GET -H "Content-Type: application/json"  -d '{"name":"xx1"}' http://127.0.0.1:8061/
-
 
     let app = Router::new()
         .route("/", get(handler))
