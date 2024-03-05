@@ -6,6 +6,10 @@ use axum::{
 };
 use tower_http::{trace::TraceLayer};
 use tower::ServiceBuilder;
+use axum::{
+    middleware::{self, Next},
+};
+
 use crate::{
     controllers::user,
     controllers::hello,
@@ -20,10 +24,8 @@ pub fn init() -> Router {
     let hello_router = Router::new()
         .route("/jwt_en",  get(hello::jwt_en))
         .route("/jwt_dn",post(hello::jwt_dn))
-        .layer(middleware::from_fn(auth_jwt));
+        .layer(middleware::from_fn(auth::auth_jwt));
 
-    let user_lgoin = Router::new()
-        .route("/login", post(user::list)).layer(middleware::from_fn(auth_jwt));
     let user_router = Router::new()
         .route("/list", post(user::list))
         .route("/info", post(user::info))
@@ -32,6 +34,7 @@ pub fn init() -> Router {
 
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
+        .route("/user/login", post(user::list)).layer(middleware::from_fn(auth::auth_jwt))
         .nest("/hello", hello_router)
         .nest("/user", user_router);
 }

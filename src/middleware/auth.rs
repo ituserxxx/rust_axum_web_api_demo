@@ -15,8 +15,9 @@ use thiserror::Error;
 use serde::{Deserialize, Serialize};
 
 use crate::tools::jwt;
+use crate::api::comm_api;
 
-async fn auth_jwt(req: Request, next: Next) -> Response {
+pub async fn auth_jwt(req: Request, next: Next) -> Response {
     match handle_auth_jwt(req, next).await {
         Ok(response) => response,
         Err(status_code) => {
@@ -39,10 +40,17 @@ async fn handle_auth_jwt(mut req: Request, next: Next) -> Result<Response, Statu
     } else {
         return Err(StatusCode::UNAUTHORIZED);
     };
-    if let Some(uid) = jwt::dn_token(auth_header).await  {
-        req.extensions_mut().insert(Some(CurrentUser{id:uid}));
-        Ok(next.run(req).await)
-    } else {
-        return Err(StatusCode::UNAUTHORIZED);
+
+
+    match jwt::dn_token(auth_header.to_string()).await {
+        Ok(uid) => {
+            req.extensions_mut().insert(Some(comm_api::CurrentUser{id:uid}));
+            Ok(next.run(req).await)
+        }
+        Err(err) => {
+            // 处理解码失败的情况
+           return  Err(StatusCode::UNAUTHORIZED);
+        }
     }
+
 }

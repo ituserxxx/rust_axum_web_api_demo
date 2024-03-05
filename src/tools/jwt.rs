@@ -12,7 +12,7 @@ const SECRET: &str = "jwt_secret";
 
 pub async fn en_token(uid: i64) -> String {
     let my_claims = Claims {
-        uid: uid,
+        uid,
         exp: SystemTime::now()
             .checked_add(Duration::from_secs(10))
             .unwrap()
