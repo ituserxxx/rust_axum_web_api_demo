@@ -20,12 +20,10 @@ pub fn init() -> Router {
     let hello_router = Router::new()
         .route("/jwt_en",  get(hello::jwt_en))
         .route("/jwt_dn",post(hello::jwt_dn))
-        .layer(
-                    ServiceBuilder::new()
-                        .layer(TraceLayer::new_for_http())
-                        .layer(auth::jwt_middleware),
-                );
+        .layer(middleware::from_fn(auth_jwt));
 
+    let user_lgoin = Router::new()
+        .route("/login", post(user::list)).layer(middleware::from_fn(auth_jwt));
     let user_router = Router::new()
         .route("/list", post(user::list))
         .route("/info", post(user::info))

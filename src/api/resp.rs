@@ -11,15 +11,15 @@ pub struct ApiResponse<T> {
 impl<T> ApiResponse<T> {
     pub fn new(code: u32, data: Option<T>, msg: &str) -> Self {
         ApiResponse {
-            code:code,
-            data:data,
+            code,
+            data,
             msg: msg.to_string(),
         }
     }
     pub fn succ( data: Option<T>) -> Self {
         ApiResponse {
             code:0,
-            data:data,
+            data,
             msg: "ok".to_string(),
         }
     }

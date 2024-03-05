@@ -3,6 +3,13 @@ name = "rust_api_v2"
 version = "0.0.1"
 edition = "2021"
 
+[[bin]]
+name = "main_test"
+path = "src/main_test.rs"
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
 [dependencies]
 axum = "0.7.4"
 time="0.3"
