@@ -13,12 +13,12 @@ async fn main() {
     let _ = db::mysql_connect().await;
 
     // 初始化路由00
-    let router_init = routers::init().into_make_service();
+    let app = routers::init().into_make_service();
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8061").await.unwrap();
-    println!("server port on {}", "0.0.0.0:8061");
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8800").await.unwrap();
+    println!("server port on {}", "0.0.0.0:8800");
     // 启动服务
-    axum::serve(listener, router_init).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 
     // 关闭数据库连接
     let _ = db::mysql_disconnect().await;

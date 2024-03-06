@@ -9,6 +9,7 @@ use crate::{
     db::user_model,
 };
 
+
 // 获取列表
 pub async fn list() -> Json<ApiResponse<user_api::UserListRes>> {
     match  user_model::fetch_all_users().await {

@@ -1,18 +1,13 @@
 use axum::{
     http,
-    routing::get,
     middleware::{self, Next},
     extract::{Request, Extension},
-    extract::rejection::JsonRejection,
-    Json,
-    response::{IntoResponse, Response},
-    body::Body,
+    response::{ Response},
     http::StatusCode,
 };
 
 use axum_extra::extract::WithRejection;
 use thiserror::Error;
-use serde::{Deserialize, Serialize};
 
 use crate::tools::jwt;
 use crate::api::comm_api;
