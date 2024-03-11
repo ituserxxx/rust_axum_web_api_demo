@@ -1,26 +1,27 @@
 use axum::{
     extract::{Extension,Json},
+    extract::State,
     response::{Html,IntoResponse},
     http::Response,
     http::StatusCode,
 };
 use validator::Validate;
-use async_session::{MemoryStore, Session, SessionStore};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use svg::node::element::Text;
 use svg::Document;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use hyper::Body;
+use axum::body::{to_bytes, Body};
+use axum_session::{Session, SessionNullPool, SessionConfig, SessionStore, SessionLayer};
 
 use crate::api::login_api;
 use crate::api::resp::ApiResponse;
 
-pub async fn show_captcha( session: Extension<Arc<Mutex<login_api::SessionData>>>) -> impl IntoResponse {
+pub async fn show_captcha(  session: Session<SessionNullPool>) -> impl IntoResponse {
     let captcha: String = thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
-        .take(6)
+        .take(4)
         .map(char::from)
         .collect();
 
@@ -31,42 +32,39 @@ pub async fn show_captcha( session: Extension<Arc<Mutex<login_api::SessionData>>
 
     let document = Document::new().add(text);
 
-    {
-        let mut state = session.lock().await;
-        state.captcha = Some(captcha.clone());
-    }
+    session.set("captcha", captcha.clone());
 
-    // 将 SVG 数据转换为 Bytes
-    let body = Bytes::from(svg_data);
-
-    Response::builder()
-        .status(StatusCode::OK)
+    // 构建 SVG 图像的响应
+    let svg_response = Response::builder()
         .header("Content-Type", "image/svg+xml")
-        .body(BoxBody::new(body))
-        .unwrap()
+        .header("Cache-Control", "no-cache")
+        .body(document.to_string())
+        .unwrap();
+
+    svg_response
 
 }
-
+pub async fn greet(session: Session<SessionNullPool>) -> String {
+    let mut count: usize = session.get("count").unwrap_or(0);
+    println!("count {}",count);
+    count += 1;
+    session.set("count", count);
+    count.to_string()
+}
 
 pub  async fn verify_captcha(
     Json(req): Json<login_api::LoginReq>,
-    session: Extension<Arc<Mutex<login_api::SessionData>>>
+    // Extension(session): Extension<Session<SessionNullPool>>
 ) -> Json<ApiResponse<login_api::LoginResp>>  {
     if let Err(error) = req.validate() {
         return Json( ApiResponse::new(400, None, &format!("{}", error)))
     }
-    // 获取 req 中的 captcha 字段的值
-    let req_captcha = req.captcha.unwrap_or_default();
-    let session_data = session.lock().await;
-    if let Some(captcha_code) = &session_data.captcha {
-        if captcha_code == &req_captcha {
-            Json( ApiResponse::succ(Some(login_api::LoginResp{id:1})))
-        } else {
-            Json( ApiResponse::succ(Some(login_api::LoginResp{id:2})))
-        }
-    } else {
-        Json( ApiResponse::succ(Some(login_api::LoginResp{id:3})))
-    }
-    // let error_msg = format!("err {}", "no pass");
-    // return Json(ApiResponse::err(&error_msg))
+    // let mut count: usize = session.get("count").unwrap_or(0);
+    // println!("count {}",count);
+    // count += 1;
+    // session.set("count", count);
+    //
+    // let error_msg = format!("err {}",count);
+    let error_msg = format!("err {}","sss");
+    return Json(ApiResponse::err(&error_msg))
 }

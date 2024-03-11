@@ -13,7 +13,7 @@ async fn main() {
     let _ = db::mysql_connect().await;
 
     // 初始化路由00
-    let app = routers::init().into_make_service();
+    let app = routers::init().await.into_make_service();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8800").await.unwrap();
     println!("server port on {}", "0.0.0.0:8800");

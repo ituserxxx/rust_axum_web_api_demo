@@ -16,6 +16,11 @@ path = "src/main_test.rs"
 name = "main_sess"
 path = "src/main_sess.rs"
 
+
+[[bin]]
+name = "main_svg"
+path = "src/main_svg.rs"
+
 [dependencies]
 axum = "0.7.4"
 time="0.3"
@@ -39,6 +44,8 @@ thiserror = "1.0.57"
 svg = "0.16.0"
 async-session = "3.0.0"
 rand = "0.8.5"
+bytes = "1.5.0"
+axum_session = "0.12.4"
 
 
 [[test]]

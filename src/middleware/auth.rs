@@ -47,5 +47,4 @@ async fn handle_auth_jwt(mut req: Request, next: Next) -> Result<Response, Statu
            return  Err(StatusCode::UNAUTHORIZED);
         }
     }
-
 }
