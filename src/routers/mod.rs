@@ -32,18 +32,11 @@ pub async fn init() -> Router {
     // create SessionStore and initiate the database tables
     let session_store = SessionStore::<SessionNullPool>::new(None, session_config).await.unwrap();
 
-    // build our application with some routes
-    let app1 = Router::new()
-        .route("/greet", get(login::greet))
-        .layer(SessionLayer::new(session_store));
 
     let login_router = Router::new()
         .route("/api/auth/captcha",get(login::show_captcha))
-        .route("/api/user/login", post(login::verify_captcha));
-        // .layer(SessionLayer::new(session_store));
-        // .with_state(session_store);
-        // .layer(Extension(session_data));
-
+        .route("/api/user/login", post(login::verify_captcha))
+        .layer(SessionLayer::new(session_store));
 
     let user_router = Router::new()
         .route("/list", post(user::list))
@@ -56,7 +49,6 @@ pub async fn init() -> Router {
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
         .nest("/hello", hello_router)
-        .nest("/g", app1)
         .nest("/", login_router)
         .nest("/user", user_router);
 }

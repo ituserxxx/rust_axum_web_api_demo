@@ -2,10 +2,19 @@ use std::net::SocketAddr;
 use axum_session::{Session, SessionNullPool, SessionConfig, SessionStore, SessionLayer};
 use axum::{
     Router,
+    extract,
     routing::get,
+    routing::post,
+    extract::Query,
+    extract::Request,
+    extract::Json,
 };
 use tokio::net::TcpListener;
-
+use serde::Deserialize;
+#[derive(Deserialize)]
+struct GreetQuery {
+    name: String,
+}
 #[tokio::main]
 async fn main() {
     let session_config = SessionConfig::default().with_table_name("sessions_table");
@@ -17,6 +26,8 @@ async fn main() {
     let app = Router::new()
         .route("/greet", get(greet))
         .route("/greet2", get(greet))
+        .route("/greet3", post(greet3))
+        .route("/greet4", post(greet3))
         .layer(SessionLayer::new(session_store));
 
     // run it
@@ -26,8 +37,40 @@ async fn main() {
     let listener = TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
+#[derive(Deserialize,Debug)]
+struct CreateUser {
+    email: String,
+    password: String,
+}
+async fn greet(query: Query<GreetQuery>,session: Session<SessionNullPool>) -> String {
+    let name = &query.name;
+    println!("Hello, {}!", name);
 
-async fn greet(session: Session<SessionNullPool>) -> String {
+    let mut count: usize = session.get("count").unwrap_or(0);
+    println!("count {}",count);
+    count += 1;
+    session.set("count", count);
+    count.to_string()
+}
+
+use axum::Form;
+
+#[derive(Deserialize,Debug)]
+struct SignUp {
+    username: String,
+    password: String,
+}
+async fn greet3(session: Session<SessionNullPool>,Form(sign_up): Form<SignUp>) -> String {
+    println!("Hello, {:?}", sign_up.username);
+    let mut count: usize = session.get("count").unwrap_or(0);
+    println!("count {}",count);
+    count += 1;
+    session.set("count", count);
+    count.to_string()
+}
+
+async fn greet4(session: Session<SessionNullPool>,Json(req): Json<SignUp>) -> String {
+    println!("Hello, {:?}", req);
     let mut count: usize = session.get("count").unwrap_or(0);
     println!("count {}",count);
     count += 1;

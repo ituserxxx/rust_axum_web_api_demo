@@ -44,27 +44,24 @@ pub async fn show_captcha(  session: Session<SessionNullPool>) -> impl IntoRespo
     svg_response
 
 }
-pub async fn greet(session: Session<SessionNullPool>) -> String {
-    let mut count: usize = session.get("count").unwrap_or(0);
-    println!("count {}",count);
-    count += 1;
-    session.set("count", count);
-    count.to_string()
-}
+
 
 pub  async fn verify_captcha(
-    Json(req): Json<login_api::LoginReq>,
-    // Extension(session): Extension<Session<SessionNullPool>>
+    session: Session<SessionNullPool>,
+    Json(req): Json<login_api::LoginReq>
 ) -> Json<ApiResponse<login_api::LoginResp>>  {
     if let Err(error) = req.validate() {
         return Json( ApiResponse::new(400, None, &format!("{}", error)))
     }
-    // let mut count: usize = session.get("count").unwrap_or(0);
-    // println!("count {}",count);
-    // count += 1;
-    // session.set("count", count);
-    //
-    // let error_msg = format!("err {}",count);
-    let error_msg = format!("err {}","sss");
+    let username = &req.username;
+    let password = &req.password;
+    format!("Received form data: username - {:?}, password - {:?}", username, password);
+
+    let mut count: usize = session.get("count").unwrap_or(0);
+    println!("count {}",count);
+    count += 1;
+    session.set("count", count);
+
+    let error_msg = format!("err {}",count);
     return Json(ApiResponse::err(&error_msg))
 }
