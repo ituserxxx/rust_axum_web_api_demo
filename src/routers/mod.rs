@@ -35,7 +35,7 @@ pub async fn init() -> Router {
 
     let login_router = Router::new()
         .route("/api/auth/captcha",get(login::show_captcha))
-        .route("/api/user/login", post(login::verify_captcha))
+        .route("/api/auth/login", post(login::verify_captcha))
         .layer(SessionLayer::new(session_store));
 
     let user_router = Router::new()

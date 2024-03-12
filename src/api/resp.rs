@@ -5,7 +5,8 @@ pub struct ApiResponse<T> {
     code: u32,
 //     #[serde(default)]
     data: Option<T>,
-    msg: String,
+    message: String,
+    // originUrl: Option<String>,
 }
 
 impl<T> ApiResponse<T> {
@@ -13,21 +14,21 @@ impl<T> ApiResponse<T> {
         ApiResponse {
             code,
             data,
-            msg: msg.to_string(),
+            message: msg.to_string(),
         }
     }
     pub fn succ( data: Option<T>) -> Self {
         ApiResponse {
             code:0,
             data,
-            msg: "ok".to_string(),
+            message: "ok".to_string(),
         }
     }
     pub fn err(msg: &str) -> Self {
         ApiResponse {
             code:500,
             data:None,
-            msg: msg.to_string(),
+            message: msg.to_string(),
         }
     }
 }
