@@ -29,11 +29,11 @@ impl Default for User {
     }
 }
 // 查询一条记录-通过 username and password
-pub async fn fetch_user_by_username_password(username: &str,password: &str) -> Result<Option<User>, sqlx::Error> {
+pub async fn fetch_user_by_username_password(username: String,password: String) -> Result<Option<User>, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
     let result = sqlx::query_as::<_, User>("SELECT * FROM user where username = ? and password = ? ")
-        .bind(username)
-        .bind(password)
+        .bind(&username)
+        .bind(&password)
         .fetch_optional(&pool)
         .await?;
     Ok(result)

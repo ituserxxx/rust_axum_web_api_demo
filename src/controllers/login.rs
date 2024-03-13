@@ -19,7 +19,7 @@ use crate::{
     db::user_model,
     api::login_api,
     api::resp::ApiResponse,
-    tools::jwt,
+    tools,
 };
 
 
@@ -57,10 +57,11 @@ pub  async fn verify_captcha(
     }
     let username = &req.username;
     let password = &req.password;
+    let captcha = &req.captcha;
 
-    println!("Received form data: username - {:?}, password - {:?}", username, password);
 
     if let Some(true_captcha) = session.get::<String>("captcha") {
+        // println!("true_captcha = {:?}", true_captcha);
         if true_captcha != req.captcha.to_string() {
             let error_msg = "验证码错误".to_string();
             return Json(ApiResponse::err(&error_msg));
@@ -69,7 +70,7 @@ pub  async fn verify_captcha(
         return Json(ApiResponse::err("验证码错误"));
     }
 
-    let query_result = user_model::fetch_user_by_username_password(username,password).await;
+    let query_result = user_model::fetch_user_by_username_password(username.to_string(),tools::md5_crypto(password.clone())).await;
 
     let uinfo = match query_result {
         Ok(Some(user)) =>user,
@@ -81,7 +82,7 @@ pub  async fn verify_captcha(
             return Json(ApiResponse::err( &error_msg))
         }
     };
-    let token = jwt::en_token(uinfo.id).await;
+    let token = tools::jwt::en_token(uinfo.id).await;
     let rp = login_api::LoginResp {
         accessToken: token,
     };

@@ -21,8 +21,6 @@ pub async fn en_token(uid: i64) -> String {
             .as_secs() as usize,
     };
     let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret(SECRET.as_ref())).unwrap();
-    println!("token: {:?}", token);
-
     return token
 }
 
