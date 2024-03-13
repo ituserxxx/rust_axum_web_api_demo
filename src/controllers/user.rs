@@ -1,15 +1,48 @@
 use axum::extract::Json;
 use validator::Validate;
 use chrono::Utc;
+use axum::{
+    middleware::{self, Next},
+    extract::{Request, Extension},
+};
 
-use crate::api::resp::{ApiResponse};
-use crate::api::user_api;
 use crate::tools;
 use crate::{
     db::user_model,
+    api::{
+        user_api,
+        comm_api,
+    },
+    api::resp::{
+        ApiResponse
+    },
+
 };
 
 
+// 获取用户详情
+pub async fn detail( Extension(curr_user): Extension<comm_api::CurrentUser>) -> Json<ApiResponse<user_api::UserInfoRes>> {
+
+    let id = curr_user.id;
+
+    let get_uinfo_result = user_model::fetch_user_by_id(id).await;
+
+    let uinfo = match get_uinfo_result {
+        Ok(Some(user)) =>user,
+        Ok(None) => {
+            return Json(ApiResponse::err( &"用户信息不存在"))
+        },
+        Err(err)=>{
+            let error_msg = format!("获取用户信息失败:{}", err);
+            return Json(ApiResponse::err( &error_msg))
+        }
+    };
+    // 初始化返回结构体
+    let rp = user_api::UserInfoRes {
+        info:uinfo,
+    };
+    return Json( ApiResponse::succ(Some(rp)))
+}
 // 获取列表
 pub async fn list() -> Json<ApiResponse<user_api::UserListRes>> {
     match  user_model::fetch_all_users().await {
@@ -59,31 +92,6 @@ pub async fn add(Json(req): Json<user_api::AddUserReq>) -> Json<ApiResponse<user
     }
 }
 
-// 获取用户详情
-pub async fn info(Json(req): Json<user_api::UserInfoReq>) -> Json<ApiResponse<user_api::UserInfoRes>> {
-    if let Err(error) = req.validate() {
-        return Json( ApiResponse::new(400, None, &format!("{}", error)))
-    }
-    let id = req.id.unwrap_or_default();
-
-    let get_uinfo_result = user_model::fetch_user_by_id(id).await;
-
-    let uinfo = match get_uinfo_result {
-        Ok(Some(user)) =>user,
-        Ok(None) => {
-            return Json(ApiResponse::err( &"用户信息不存在"))
-        },
-        Err(err)=>{
-            let error_msg = format!("获取用户信息失败:{}", err);
-            return Json(ApiResponse::err( &error_msg))
-        }
-    };
-    // 初始化返回结构体
-    let rp = user_api::UserInfoRes {
-        info:uinfo,
-    };
-    return Json( ApiResponse::succ(Some(rp)))
-}
 // 获取用户详情
 pub async fn del(Json(req): Json<user_api::UserDelReq>) -> Json<ApiResponse<user_api::UserDelRes>> {
     if let Err(error) = req.validate() {

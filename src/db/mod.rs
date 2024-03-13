@@ -1,10 +1,12 @@
-pub mod user_model;
+
 use dotenv::dotenv;
 use std::env;
 
 use sqlx::mysql::{ MySqlPoolOptions};
 use std::sync::{Arc, Mutex};
 use lazy_static::lazy_static;
+
+pub mod user_model;
 
 // 定义懒加载全局变量
 lazy_static! {

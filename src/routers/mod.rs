@@ -33,24 +33,24 @@ pub async fn init() -> Router {
     let session_store = SessionStore::<SessionNullPool>::new(None, session_config).await.unwrap();
 
 
-    let login_router = Router::new()
-        .route("/api/auth/captcha",get(login::show_captcha))
-        .route("/api/auth/login", post(login::verify_captcha))
+    let auth_router = Router::new()
+        .route("/captcha",get(login::show_captcha))
+        .route("/login", post(login::verify_captcha))
         .layer(SessionLayer::new(session_store));
 
     let user_router = Router::new()
-        .route("/list", post(user::list))
-        .route("/info", post(user::info))
-        .route("/del", post(user::del))
-        .route("/add", post(user::add))
+        .route("/detail", get(user::detail))
+        // .route("/list", post(user::list))
+        // .route("/del", post(user::del))
+        // .route("/add", post(user::add))
         .layer(middleware::from_fn(auth::auth_jwt));
 
 
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
         .nest("/hello", hello_router)
-        .nest("/", login_router)
-        .nest("/user", user_router);
+        .nest("/api/auth", auth_router)
+        .nest("/api/user", user_router);
 }
 
 

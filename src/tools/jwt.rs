@@ -7,14 +7,13 @@ struct Claims {
    exp:usize,
 }
 
-
 const SECRET: &str = "jwt_secret";
 
 pub async fn en_token(uid: i64) -> String {
     let my_claims = Claims {
         uid,
         exp: SystemTime::now()
-            .checked_add(Duration::from_secs(10))
+            .checked_add(Duration::from_secs(3600*12))
             .unwrap()
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap()
@@ -25,14 +24,13 @@ pub async fn en_token(uid: i64) -> String {
 }
 
 pub async fn dn_token(token: String) -> Result<i64, String> {
-    match decode::<Claims>(&token, &DecodingKey::from_secret(SECRET.as_ref()), &Validation::new(Algorithm::HS256)) {
+    let token_without_bearer = token.trim_start_matches("Bearer ");
+    match decode::<Claims>(&token_without_bearer, &DecodingKey::from_secret(SECRET.as_ref()), &Validation::new(Algorithm::HS256)) {
         Ok(token_data) => {
             let uid = token_data.claims.uid;
-              println!("decoding token: {:?}", uid);
             Ok(uid)
         }
         Err(err) => {
-            println!("Error decoding token: {:?}", err);
             Err("Error decoding token".to_string())
         }
     }

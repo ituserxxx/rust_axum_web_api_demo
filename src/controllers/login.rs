@@ -38,7 +38,7 @@ pub async fn show_captcha(  session: Session<SessionNullPool>) -> impl IntoRespo
     let document = Document::new().add(text);
 
     session.set("captcha", captcha.to_string());
-    println!("curr captche is =: {}", captcha.clone());
+
     // 构建 SVG 图像的响应
    return  Response::builder()
         .header("Content-Type", "image/svg+xml")

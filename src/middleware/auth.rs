@@ -29,17 +29,15 @@ async fn handle_auth_jwt(mut req: Request, next: Next) -> Result<Response, Statu
     let auth_header = req.headers()
         .get(http::header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
-
     let auth_header = if let Some(auth_header) = auth_header {
         auth_header
     } else {
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-
     match jwt::dn_token(auth_header.to_string()).await {
         Ok(uid) => {
-            req.extensions_mut().insert(Some(comm_api::CurrentUser{id:uid}));
+            req.extensions_mut().insert(comm_api::CurrentUser{id:uid});
             Ok(next.run(req).await)
         }
         Err(err) => {

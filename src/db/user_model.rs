@@ -59,10 +59,10 @@ pub async fn fetch_all_users() -> Result<Vec<User>, sqlx::Error> {
 }
 
 // 更新记录-通过 id
-pub async fn update_username_by_id( username: &str, id: i64) -> Result<MySqlQueryResult, sqlx::Error> {
+pub async fn update_username_by_id( username: String, id: i64) -> Result<MySqlQueryResult, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
     let  result = sqlx::query("update user set username = ? where id = ?")
-            .bind(username)
+            .bind(&username)
             .bind(id)
             .execute(&pool)
             .await?;
