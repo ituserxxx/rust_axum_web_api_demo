@@ -2,11 +2,25 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 use crate::{
     db::user_model,
+    db::profile_model,
+    db::role_model,
 };
 
-#[derive(Debug, Deserialize, Serialize)]
+#[allow(non_snake_case)]
+#[derive(Debug,Default, Deserialize, Serialize)]
 pub struct UserDetailRes {
-    pub info: user_model::User,
+    pub id          : i64,
+    pub username    : String,
+    pub password    : String,
+    pub enable      : bool,
+    #[allow(non_snake_case)]
+    pub createTime  : String,
+    #[allow(non_snake_case)]
+    pub updateTime  : String,
+    pub profile     : profile_model::Profile,
+    pub roles       : Vec<role_model::Role>,
+    #[allow(non_snake_case)]
+    pub currentRole : role_model::Role,
 }
 
 

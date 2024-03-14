@@ -6,14 +6,16 @@ use chrono::{DateTime, Utc};
 // 引入全局变量
 use super::DB_POOL;
 
-#[allow(non_snake_case)]
+
 #[derive(Debug,Clone, Deserialize, Serialize,  sqlx::FromRow)]
 pub struct User {
     pub id          : i64,
     pub username    : String,
     pub password    : String,
     pub enable      : i8,
+    #[allow(non_snake_case)]
     pub createTime  : DateTime<Utc>,
+    #[allow(non_snake_case)]
     pub updateTime  : DateTime<Utc>,
 }
 impl Default for User {
@@ -40,7 +42,7 @@ pub async fn fetch_user_by_username_password(username: String,password: String) 
 }
 
 // 查询一条记录-通过 id
-pub async fn fetch_user_by_id(id: i64) -> Result<Option<User>, sqlx::Error> {
+pub async fn find_info_by_id(id: i64) -> Result<Option<User>, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
     let result = sqlx::query_as::<_, User>("SELECT * FROM user where id = ?")
             .bind(id)

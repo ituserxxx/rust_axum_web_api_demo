@@ -23,7 +23,7 @@ use crate::{
 };
 
 // 获取用户详情
-pub async fn detail( Extension(curr_user): Extension<comm_api::CurrentUser>) -> Json<ApiResponse<user_api::UserDetailRes>> {
+pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::CurrentUser>) -> Json<ApiResponse<user_api::UserDetailRes>> {
     let uid = curr_user.id;
     let mut rp = user_api::UserDetailRes::default();
 

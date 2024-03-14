@@ -13,16 +13,3 @@ pub struct JwtDnReq {
     pub name: Option<String>,
 }
 
-// Define the state to store captcha and user session
-#[derive(Debug, Clone)]
-struct State {
-    captcha: String,
-}
-
-impl State {
-    fn new() -> Self {
-        Self {
-            captcha: String::new(),
-        }
-    }
-}

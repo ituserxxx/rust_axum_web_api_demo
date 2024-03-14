@@ -12,9 +12,10 @@ use axum_session::{Session, SessionNullPool, SessionConfig, SessionStore, Sessio
 
 use crate::{
     api::login_api,
+    controllers::hello,
     controllers::login,
     controllers::user,
-    controllers::hello,
+    controllers::role,
     middleware::auth,
 };
 
@@ -26,12 +27,9 @@ pub async fn init() -> Router {
         .route("/jwt_dn",post(hello::jwt_dn))
         .layer(middleware::from_fn(auth::auth_jwt));
 
-    let session_config = SessionConfig::default()
-        .with_table_name("sessions_table");
+    let session_config = SessionConfig::default().with_table_name("sessions_table");
 
-    // create SessionStore and initiate the database tables
     let session_store = SessionStore::<SessionNullPool>::new(None, session_config).await.unwrap();
-
 
     let auth_router = Router::new()
         .route("/captcha",get(login::show_captcha))
@@ -40,17 +38,18 @@ pub async fn init() -> Router {
 
     let user_router = Router::new()
         .route("/detail", get(user::detail))
-        // .route("/list", post(user::list))
-        // .route("/del", post(user::del))
-        // .route("/add", post(user::add))
         .layer(middleware::from_fn(auth::auth_jwt));
 
+    let role_router = Router::new()
+        .route("/permissions/tree", get(user::detail))
 
+        .layer(middleware::from_fn(auth::auth_jwt));
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
         .nest("/hello", hello_router)
         .nest("/api/auth", auth_router)
-        .nest("/api/user", user_router);
+        .nest("/api/user", user_router)
+        .nest("/api/role", role_router);
 }
 
 
