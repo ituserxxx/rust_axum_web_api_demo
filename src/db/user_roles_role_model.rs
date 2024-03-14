@@ -36,3 +36,17 @@ pub async fn fetch_role_id_where_user_id(uid : i64) -> Result<Vec<i64>, sqlx::Er
 
     Ok(role_ids)
 }
+
+// 查询一个字段记录，返回数组值
+pub async fn find_is_admin_role_by_user_id(uid : i64) -> Result<bool, sqlx::Error> {
+    let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
+    // 执行 count 查询
+    let count: i64 = sqlx::query_scalar("SELECT roleId FROM user_roles_role WHERE roleId=1 and userId = ?")
+        .bind(uid)
+        .fetch_one(&pool)
+        .await?;
+    if count == 1{
+        OK(true)
+    }
+    Ok(false)
+}

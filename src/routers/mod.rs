@@ -41,9 +41,9 @@ pub async fn init() -> Router {
         .layer(middleware::from_fn(auth::auth_jwt));
 
     let role_router = Router::new()
-        .route("/permissions/tree", get(user::detail))
-
+        .route("/permissions/tree", get(role::permissions_tree))
         .layer(middleware::from_fn(auth::auth_jwt));
+
     return Router::new()
         .route("/", get(|| async { "☺ welcome to Rust" }))
         .nest("/hello", hello_router)
