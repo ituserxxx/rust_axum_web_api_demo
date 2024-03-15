@@ -1,12 +1,6 @@
-# rust_axum_web_api_demo
 
-rust开发web api的一个demo，新手学习入门
+该项目正在开发，每天一点点
 
-库搜索
-https://docs.rs/
-
-install rust 
-
-install cargo
-
-cargo run
+开发仓库在：https://github.com/ituserxxx/rust_axum_web_api_demo
+ 
+使用 axum session sqlx mysql等技术栈
