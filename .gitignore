@@ -1,6 +1,8 @@
 .idea/
 mysql
 target/
+
+vue-naive-admin/node_modules
 # Build and Release Folders
 bin-debug/
 bin-release/
