@@ -35,7 +35,7 @@ pub async fn detail( Extension(curr_user): Extension<comm_api::CurrentUser>) -> 
             return Json(ApiResponse::err( &"用户信息不存在"))
         },
         Err(err)=>{
-            let error_msg = format!("获取用户信息失败:{}", err);
+            let error_msg = format!("获取用户信息失败:{:?}", err);
             return Json(ApiResponse::err( &error_msg))
         }
     };
@@ -55,7 +55,7 @@ pub async fn detail( Extension(curr_user): Extension<comm_api::CurrentUser>) -> 
             return Json(ApiResponse::err( &"profile信息不存在"))
         },
         Err(err)=>{
-            let error_msg = format!("获取profile信息失败:{}", err);
+            let error_msg = format!("获取profile信息失败:{:?}", err);
             return Json(ApiResponse::err( &error_msg))
         }
     };
@@ -73,7 +73,7 @@ pub async fn detail( Extension(curr_user): Extension<comm_api::CurrentUser>) -> 
             }
         },
         Err(err)=>{
-            let error_msg = format!("获取角色信息失败:{}", err);
+            let error_msg = format!("获取角色信息失败:{:?}", err);
             return Json(ApiResponse::err( &error_msg))
         }
     };

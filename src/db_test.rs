@@ -52,36 +52,36 @@ async fn ope() -> Result<(), sqlx::Error> {
 
 //     let pool = MySqlPoolOptions::new().connect("mysql://naive_admin:naive_admin_pass@localhost:33069/naive_admin").await?;
 
-    let update_result = fetch_user_by_id(&pool,5).await;
-    match  update_result {
-        Ok(user) => {
-            // 处理成功获取用户信息的情况
-            println!("1111 Successfully fetched user: {:?}", user);
-            // 获取 name 字段的值
-            let username = user.username;
-            // 打印字段值
-            println!("2222username: {:?}", username);
-        }
-        Err(err) => {
-            // 处理查询失败的情况
-            println!("Failed to fetch user: {:?}", err);
-        }
-    }
-    Ok(())
-// let user = User {
-//         username: "John10".to_string(),
-//         password: tools::md5_crypto("123456".to_string()),
-//         enable:1,
-//         createTime: OffsetDateTime::now_utc(),
-//         updateTime: OffsetDateTime::now_utc(),
-//     };
-//     let update_result = add_user_by_struct(&pool,user.clone()).await?;
+    // let update_result = fetch_user_by_id(&pool,5).await;
+    // match  update_result {
+    //     Ok(user) => {
+    //         // 处理成功获取用户信息的情况
+    //         println!("1111 Successfully fetched user: {:?}", user);
+    //         // 获取 name 字段的值
+    //         let username = user.username;
+    //         // 打印字段值
+    //         println!("2222username: {:?}", username);
+    //     }
+    //     Err(err) => {
+    //         // 处理查询失败的情况
+    //         println!("Failed to fetch user: {:?}", err);
+    //     }
+    // }
+    // Ok(())
+
+let user = User {
+        username: "xxx".to_string(),
+        password: tools::md5_crypto("123456".to_string()),
+        enable:1,
+        createTime: OffsetDateTime::now_utc(),
+        updateTime: OffsetDateTime::now_utc(),
+    };
+    let update_result = add_user_by_struct(&pool,user.clone()).await?;
 
 
-//     let users = fetch_all_users(&pool).await;
-//     println!("{:#?}", users);
-//      Ok(())
-//     println!("1111111");
+    let users = fetch_all_users(&pool).await;
+    println!("{:#?}", users);
+     Ok(())
 
 //// ope MySqlTransaction ok
 //     let mut tx = pool.begin().await?;

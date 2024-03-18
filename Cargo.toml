@@ -16,6 +16,9 @@ path = "src/main_test.rs"
 name = "main_sess"
 path = "src/main_sess.rs"
 
+[[bin]]
+name = "db_test"
+path = "src/db_test.rs"
 
 [[bin]]
 name = "main_svg"

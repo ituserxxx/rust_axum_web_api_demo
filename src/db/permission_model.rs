@@ -6,9 +6,9 @@ use std::rc::Rc;
 
 // 引入全局变量
 use super::DB_POOL;
+use sqlx::{FromRow,};
 
-#[derive(Debug,Clone, Deserialize, Serialize, sqlx::FromRow)]
-#[sqlx(default)]
+#[derive(Debug,Clone, Deserialize, Serialize, FromRow)]
 pub struct Permission {
     pub id          : i64,
     pub name        : String,
@@ -28,8 +28,7 @@ pub struct Permission {
     pub show        : i8,
     pub enable      : i8,
     pub order       : i64,
-    #[sqlx(default)]
-    pub children: Option<Vec<Permission>>,
+
 }
 impl Default for Permission {
     fn default() -> Self {
@@ -50,7 +49,7 @@ impl Default for Permission {
             show        :   1,
             enable      :   1,
             order       :   0,
-            children: Some(Vec::new()),
+            // children: Some(Vec::new()),
         }
     }
 }
@@ -59,7 +58,7 @@ pub async fn find_1_level() -> Result<Vec<Permission>, sqlx::Error> {
 
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
 
-    let rows = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId is NULL ORDER BY `order` ASC ")
+    let rows: Vec<Permission>  = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId is NULL ORDER BY `order` ASC ")
         .fetch_all(&pool)
         .await?;
     Ok(rows)
@@ -76,12 +75,11 @@ pub async fn find_1_level() -> Result<Vec<Permission>, sqlx::Error> {
 //     Ok(permissions_with_rc)
 // }
 // 查询下级权限通过 p_id
-// pub async fn find_all_where_by_p_id(p_id:i64) ->  Result<Vec<Permission>, sqlx::Error> {
-//     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
-//     let rows = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId = ? ORDER BY `order` ASC ")
-//         .bind(p_id)
-//         .fetch_all(&pool)
-//         .await?;
-//
-//     Ok(rows)
-// }
+pub async fn find_all_where_by_p_id(p_id:i64) ->  Result<Vec<Permission>, sqlx::Error> {
+    let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
+    let rows: Vec<Permission>  = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId = ? ORDER BY `order` ASC ")
+        .bind(p_id)
+        .fetch_all(&pool)
+        .await?;
+    Ok(rows)
+}
