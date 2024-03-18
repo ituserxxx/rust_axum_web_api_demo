@@ -9,6 +9,8 @@ use lazy_static::lazy_static;
 pub mod user_model;
 pub mod profile_model;
 pub mod role_model;
+pub mod permission_model;
+pub mod user_roles_role_model;
 
 // 定义懒加载全局变量
 lazy_static! {

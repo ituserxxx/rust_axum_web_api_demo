@@ -21,12 +21,12 @@ pub struct User {
 impl Default for User {
     fn default() -> Self {
         User {
-            id          :0,
-            username    :String::default(),
-            password    :String::default(),
-            enable      :0,
-            createTime  : Utc::now(),
-            updateTime  : Utc::now(),
+            id          :   0,
+            username    :   String::default(),
+            password    :   String::default(),
+            enable      :   0,
+            createTime  :   Utc::now(),
+            updateTime  :   Utc::now(),
         }
     }
 }

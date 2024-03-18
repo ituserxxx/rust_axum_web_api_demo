@@ -17,8 +17,8 @@ pub struct UserRolesRole {
 impl Default for UserRolesRole {
     fn default() -> Self {
         UserRolesRole {
-            userId          :0,
-            roleId        :0,
+            userId        : 0,
+            roleId        : 0,
         }
     }
 }
@@ -45,8 +45,5 @@ pub async fn find_is_admin_role_by_user_id(uid : i64) -> Result<bool, sqlx::Erro
         .bind(uid)
         .fetch_one(&pool)
         .await?;
-    if count == 1{
-        OK(true)
-    }
-    Ok(false)
+    Ok(count == 1)
 }

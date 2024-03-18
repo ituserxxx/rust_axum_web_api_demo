@@ -62,7 +62,7 @@ pub  async fn verify_captcha(
 
     if let Some(true_captcha) = session.get::<String>("captcha") {
         // println!("true_captcha = {:?}", true_captcha);
-        if true_captcha != req.captcha.to_string() {
+        if true_captcha != captcha.to_string() {
             let error_msg = "验证码错误".to_string();
             return Json(ApiResponse::err(&error_msg));
         }
