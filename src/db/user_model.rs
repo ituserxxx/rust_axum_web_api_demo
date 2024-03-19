@@ -53,6 +53,9 @@ pub async fn find_info_by_id(id: i64) -> Result<Option<User>, sqlx::Error> {
     Ok(result)
 }
 
+
+
+
 // 查询多条记录
 pub async fn fetch_all_users(req: Query<user_api::UserListReq>) -> Result<Vec<User>, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
@@ -82,17 +85,16 @@ pub async fn fetch_all_users(req: Query<user_api::UserListReq>) -> Result<Vec<Us
     let limit = req.pageSize.unwrap_or(10);
     let offset = (req.pageNo.unwrap_or(1)-1)*10;
 
-    let mut query_builder = sqlx::query(&sql_str);
+    let query_builder = sqlx::query(&sql_str);
 
-    for (index, param) in params.iter().enumerate() {
-        query_builder = query_builder.bind_named(format!("param{}", index), param);
+    let mut query_with_params = query_builder;
+
+    for param in &params {
+        query_with_params = query_with_params.bind(param);
     }
+    query_with_params = query_with_params.bind(limit).bind(offset);
 
-    let result = query_builder
-        .bind(("limit", &limit))
-        .bind(("offset", &offset))
-        .fetch_all(&pool)
-        .await?;
+    let result = query_with_params.fetch_all(&pool).await?;
 
     let mut users: Vec<User> = Vec::new();
     for row in result {

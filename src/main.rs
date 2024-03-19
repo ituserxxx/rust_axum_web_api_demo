@@ -1,3 +1,7 @@
+use tracing_subscriber::fmt::format::FmtSpan;
+use tracing_subscriber::prelude::*;
+use tracing_subscriber::EnvFilter;
+
 
 mod api;
 mod controllers;
@@ -8,6 +12,16 @@ mod tools;
 
 #[tokio::main]
 async fn main() {
+
+    // 初始化日志记录器
+
+    let filter = EnvFilter::from_default_env()
+        .add_directive(tracing::Level::INFO.into());
+
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_span_events(FmtSpan::CLOSE)
+        .init();
 
     // 初始化数据库连接
     let _ = db::mysql_connect().await;

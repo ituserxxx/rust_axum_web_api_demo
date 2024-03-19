@@ -18,5 +18,6 @@ pub struct LoginReq {
 
 #[derive(Debug,Deserialize, Serialize)]
 pub struct LoginResp {
+    #[allow(non_snake_case)]
     pub accessToken: String,
 }
