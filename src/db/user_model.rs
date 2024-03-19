@@ -1,12 +1,14 @@
 use std::clone::Clone;
-use sqlx::mysql::MySqlQueryResult;
+use sqlx::{ Encode,mysql::MySqlQueryResult,Row};
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
-
+use axum::{
+    extract::{Query},
+};
 // 引入全局变量
 use super::DB_POOL;
 
-
+use crate::api::user_api;
 #[derive(Debug,Clone, Deserialize, Serialize,  sqlx::FromRow)]
 pub struct User {
     pub id          : i64,
@@ -52,12 +54,62 @@ pub async fn find_info_by_id(id: i64) -> Result<Option<User>, sqlx::Error> {
 }
 
 // 查询多条记录
-pub async fn fetch_all_users() -> Result<Vec<User>, sqlx::Error> {
+pub async fn fetch_all_users(req: Query<user_api::UserListReq>) -> Result<Vec<User>, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
-    let rows = sqlx::query_as::<_, User>("SELECT * FROM user")
-            .fetch_all(&pool)
-            .await?;
-    Ok(rows.into_iter().map(|row| row.clone()).collect())
+    // 构建 SQL 查询语句
+    let mut sql_str = "SELECT * FROM user".to_string();
+    let mut params: Vec<String> = Vec::new();
+    if req.enable.is_some() || req.gender.is_some() || req.username.is_some() {
+        sql_str.push_str(" WHERE");
+        let mut conditions: Vec<String> = Vec::new();
+
+        if let Some(enable) = req.enable {
+            conditions.push(" enable = ?".to_string());
+            params.push((&enable).to_string());
+        }
+        if let Some(gender) = req.gender {
+            conditions.push(" gender = ?".to_string());
+            params.push((&gender).to_string());
+        }
+        if let Some(username) = req.username.as_ref() {
+            conditions.push(" username = ?".to_string());
+            params.push((&username).to_string());
+        }
+        sql_str.push_str(&conditions.join(" AND"));
+    }
+    sql_str.push_str(" order by id desc LIMIT ? OFFSET ? ");
+    println!("sql-->{:?}",sql_str);
+    let limit = req.pageSize.unwrap_or(10);
+    let offset = (req.pageNo.unwrap_or(1)-1)*10;
+
+    let mut query_builder = sqlx::query(&sql_str);
+
+    for (index, param) in params.iter().enumerate() {
+        query_builder = query_builder.bind_named(format!("param{}", index), param);
+    }
+
+    let result = query_builder
+        .bind(("limit", &limit))
+        .bind(("offset", &offset))
+        .fetch_all(&pool)
+        .await?;
+
+    let mut users: Vec<User> = Vec::new();
+    for row in result {
+        let user = User {
+            // 从数据库行中提取用户信息并创建 User 对象
+            id: row.get("id"),
+            username: row.get("username"),
+            // 其他字段类似地从数据库行中提取
+            password:row.get("password"),
+            enable:row.get("enable"),
+            createTime:row.get("createTime"),
+            updateTime: row.get("updateTime"),
+        };
+        users.push(user);
+    }
+
+    Ok(users)
 }
 
 // 更新记录-通过 id

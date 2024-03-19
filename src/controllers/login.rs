@@ -17,6 +17,7 @@ use crate::{
     tools,
 };
 
+// 获取验证码
 pub async fn show_captcha(session: Session<SessionNullPool>) -> impl IntoResponse {
     let captcha: String = thread_rng()
         .sample_iter(&Alphanumeric)
@@ -38,7 +39,7 @@ pub async fn show_captcha(session: Session<SessionNullPool>) -> impl IntoRespons
         .unwrap();
 }
 
-
+// 登录验证
 pub async fn verify_captcha(
     session: Session<SessionNullPool>,
     Json(req): Json<login_api::LoginReq>,
@@ -52,7 +53,6 @@ pub async fn verify_captcha(
 
 
     if let Some(true_captcha) = session.get::<String>("captcha") {
-        // println!("true_captcha = {:?}", true_captcha);
         if true_captcha != captcha.to_string() {
             let error_msg = "验证码错误".to_string();
             return Json(ApiResponse::err(&error_msg));

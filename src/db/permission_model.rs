@@ -54,9 +54,7 @@ impl Default for Permission {
 }
 //
 pub async fn find_1_level() -> Result<Vec<Permission>, sqlx::Error> {
-
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
-
     let rows: Vec<Permission>  = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId is NULL ORDER BY `order` ASC ")
         .fetch_all(&pool)
         .await?;
@@ -64,15 +62,14 @@ pub async fn find_1_level() -> Result<Vec<Permission>, sqlx::Error> {
 }
 
 // 查询1级权限通过 user_id
-// pub async fn find_1_level_where_by_user_id(user_id:i64) ->  Result<Vec<Permission>, sqlx::Error> {
-//     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
-//     let rows: Vec<Permission> = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId is NULL and id in (select permissionId from role_permissions_permission where roleId IN(SELECT roleId FROM user_roles_role WHERE userId=?)) ORDER BY `order` ASC ")
-//         .bind(user_id)
-//         .fetch_all(&pool)
-//         .await?;
-//
-//     Ok(permissions_with_rc)
-// }
+pub async fn find_1_level_where_by_user_id(user_id:i64) ->  Result<Vec<Permission>, sqlx::Error> {
+    let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
+    let rows: Vec<Permission> = sqlx::query_as::<_, Permission>("SELECT * FROM `permission` WHERE parentId is NULL and id in (select permissionId from role_permissions_permission where roleId IN(SELECT roleId FROM user_roles_role WHERE userId=?)) ORDER BY `order` ASC ")
+        .bind(user_id)
+        .fetch_all(&pool)
+        .await?;
+    Ok(rows)
+}
 // 查询下级权限通过 p_id
 pub async fn find_all_where_by_p_id(p_id:i64) ->  Result<Vec<Permission>, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();

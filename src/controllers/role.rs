@@ -27,28 +27,40 @@ use crate::{
     },
 };
 
-pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::CurrentUser>) ->Json<ApiResponse<Option<Vec<PermissionItem>>>>  {
+pub async fn permissions_tree(
+    Extension(curr_user): Extension<comm_api::CurrentUser>
+) ->Json<ApiResponse<Option<Vec<PermissionItem>>>>  {
     let uid = curr_user.id;
 
     let is_admin_result = user_roles_role_model::find_is_admin_role_by_user_id(uid).await;
     let is_admin = match is_admin_result{
         Ok(a)=>a,
         Err(err)=>{
-            let error_msg = format!("获取admin权限信息失败:{:?}", err);
+            let error_msg = format!("获取用户admin权限信息失败:{:?}", err);
             return Json(ApiResponse::err( &error_msg))
         }
     };
-
-    let find_1_level_result = permission_model::find_1_level().await;
-    let mut one_arr = match find_1_level_result{
-        Ok(a)=>a,
-        Err(err)=>{
-            let error_msg = format!("获取权限信息失败:{:?}", err);
-            return Json(ApiResponse::err( &error_msg))
-        }
-    };
+    let mut one_arr :Vec<permission_model::Permission> =Vec::new();
+    if is_admin {
+        let find_1_level_result = permission_model::find_1_level().await;
+        one_arr = match find_1_level_result{
+            Ok(a)=>a,
+            Err(err)=>{
+                let error_msg = format!("获取所有权限信息失败:{:?}", err);
+                return Json(ApiResponse::err( &error_msg))
+            }
+        };
+    }else{
+        let find_1_level_result = permission_model::find_1_level_where_by_user_id(uid).await;
+        one_arr = match find_1_level_result{
+            Ok(a)=>a,
+            Err(err)=>{
+                let error_msg = format!("获取用户权限信息失败:{:?}", err);
+                return Json(ApiResponse::err( &error_msg))
+            }
+        };
+    }
     let mut rp_arr: Vec<PermissionItem> = Vec::new();
-
     for one in one_arr {
         let mut m1 = Box::new(PermissionItem {
             id: one.id,
@@ -96,7 +108,7 @@ pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::Current
                 if let Ok(three_arr) = find_3_result {
                     let mut three_children : Vec<PermissionItem> = Vec::new();
                     for three in three_arr {
-                        let mut m3 = PermissionItem {
+                        let m3 = PermissionItem {
                             id: three.id,
                             name: three.name,
                             code: three.code,
@@ -126,9 +138,6 @@ pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::Current
         }
         rp_arr.push(*m1);
     }
-
     return Json(ApiResponse::succ(Some(Some(rp_arr))));
-
-
 }
 

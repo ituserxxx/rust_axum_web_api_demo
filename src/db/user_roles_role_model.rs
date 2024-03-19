@@ -30,10 +30,8 @@ pub async fn fetch_role_id_where_user_id(uid : i64) -> Result<Vec<i64>, sqlx::Er
         .bind(uid)
         .fetch_all(&pool)
         .await?;
-
     // 提取 roleId 列的值并转换为 i64 数组
     let role_ids: Vec<i64> = rows.iter().map(|row| row.roleId).collect();
-
     Ok(role_ids)
 }
 
@@ -41,9 +39,14 @@ pub async fn fetch_role_id_where_user_id(uid : i64) -> Result<Vec<i64>, sqlx::Er
 pub async fn find_is_admin_role_by_user_id(uid : i64) -> Result<bool, sqlx::Error> {
     let pool = DB_POOL.lock().unwrap().as_ref().expect("DB pool not initialized").clone();
     // 执行 count 查询
-    let count: i64 = sqlx::query_scalar("SELECT roleId FROM user_roles_role WHERE roleId=1 and userId = ?")
+    let result: Option<i64> = sqlx::query_scalar("SELECT roleId FROM user_roles_role WHERE roleId=1 and userId = ?")
         .bind(uid)
-        .fetch_one(&pool)
+        .fetch_optional(&pool)
         .await?;
-    Ok(count == 1)
+// 检查查询结果是否为 Some，并且值等于 1
+    let count_equals_one = match result {
+        Some(count) => count == 1,
+        None => false, // 如果查询结果为 None，则认为 count 不等于 1
+    };
+    Ok(count_equals_one)
 }
