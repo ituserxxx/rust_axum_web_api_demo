@@ -31,10 +31,6 @@ pub struct PermissionItem {
     pub show        : i8,
     pub enable      : i8,
     pub order       : i64,
-    pub children: Option<Vec<permission_model::Permission>>,
+    pub children: Option<Vec<Box<PermissionItem>>>
 }
 
-#[derive(Debug,Default, Deserialize, Serialize)]
-pub struct PermissionsTreeResp {
-    pub list       : Option<Vec<PermissionItem>>,
-}

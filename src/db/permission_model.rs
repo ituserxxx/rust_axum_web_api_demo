@@ -49,7 +49,6 @@ impl Default for Permission {
             show        :   1,
             enable      :   1,
             order       :   0,
-            // children: Some(Vec::new()),
         }
     }
 }

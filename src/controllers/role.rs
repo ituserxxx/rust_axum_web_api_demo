@@ -17,15 +17,15 @@ use crate::{
     },
     api::{
         user_api,
-        role_api,
+        role_api::{
+            PermissionItem
+        },
         comm_api,
     },
     api::resp::{
         ApiResponse
     },
 };
-use crate::api::role_api::PermissionItem;
-
 
 pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::CurrentUser>) ->Json<ApiResponse<Option<Vec<PermissionItem>>>>  {
     let uid = curr_user.id;
@@ -47,9 +47,10 @@ pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::Current
             return Json(ApiResponse::err( &error_msg))
         }
     };
-    let mut rp = role_api::PermissionsTreeResp::default();
+    let mut rp_arr: Vec<PermissionItem> = Vec::new();
+
     for one in one_arr {
-        let m1 = role_api::PermissionItem {
+        let mut m1 = Box::new(PermissionItem {
             id: one.id,
             name: one.name,
             code: one.code,
@@ -66,33 +67,68 @@ pub async fn permissions_tree( Extension(curr_user): Extension<comm_api::Current
             show: one.show,
             enable:one.enable,
             order: one.order,
-            children: Some(vec![]),
-        };
-        // let find_2_result = permission_model::find_all_where_by_p_id(one_arr[i1].id).await;
-        // if let Ok(two_arr) = find_2_result {
-        //     // for i2 in 0..two_arr.len() {
-        //     //     let find_3_result = permission_model::find_all_where_by_p_id(two_arr[i2].id).await;
-        //     //     if let Ok(three_arr) = find_3_result {
-        //     //         let three_arr_rc: Vec<Rc<Permission>> = three_arr.into_iter().map(Rc::new).collect();
-        //     //         // 将三级权限列表赋值给二级权限的子节点
-        //     //         two_arr[i2].children = Some(three_arr_rc);
-        //     //     }
-        //     // }
-        //     // 将二级权限列表赋值给一级权限的子节点
-        //     one.children = Some(two_arr);
-        // }
-        if let Some(ref mut list) = rp.list {
-            list.push(m1);
+            children: Some(Vec::new()),
+        });
+        let find_2_result = permission_model::find_all_where_by_p_id(one.id).await;
+        if let Ok(two_arr) = find_2_result {
+            let mut two_children:Vec<PermissionItem> = Vec::new();
+            for two in two_arr{
+                let mut m2 = PermissionItem {
+                    id: two.id,
+                    name: two.name,
+                    code: two.code,
+                    r#type: two.r#type,
+                    parentId: two.parentId,
+                    path: two.path,
+                    redirect: two.redirect,
+                    icon: two.icon,
+                    component: two.component,
+                    layout: two.layout,
+                    keepAlive: two.keepAlive,
+                    method: two.method,
+                    description: two.description,
+                    show: two.show,
+                    enable:two.enable,
+                    order: two.order,
+                    children: Some(Vec::new()),
+                };
+                let find_3_result = permission_model::find_all_where_by_p_id(two.id).await;
+                if let Ok(three_arr) = find_3_result {
+                    let mut three_children : Vec<PermissionItem> = Vec::new();
+                    for three in three_arr {
+                        let mut m3 = PermissionItem {
+                            id: three.id,
+                            name: three.name,
+                            code: three.code,
+                            r#type: three.r#type,
+                            parentId: three.parentId,
+                            path: three.path,
+                            redirect: three.redirect,
+                            icon: three.icon,
+                            component: three.component,
+                            layout: three.layout,
+                            keepAlive: three.keepAlive,
+                            method: three.method,
+                            description: three.description,
+                            show: three.show,
+                            enable: three.enable,
+                            order: three.order,
+                            children: Some(Vec::new()),
+                        };
+                        three_children.push(m3)
+                    }
+                    m2.children =  Some(three_children.into_iter().map(Box::new).collect());
+                }
+                two_children.push(m2)
+            }
+            // 将二级权限列表赋值给一级权限的子节点
+            m1.children =  Some(two_children.into_iter().map(Box::new).collect());
         }
-        // rp.list.push(Some(m1));
+        rp_arr.push(*m1);
     }
 
-    // let mut rp = role_api::PermissionsTreeResp::default();
-    // rp.list = Some(one_arr);
+    return Json(ApiResponse::succ(Some(Some(rp_arr))));
 
-    return Json(ApiResponse::succ(Some(rp.list)));
-    // let error_msg = format!("获取权限信息失败:{}", "xx");
-    // return Json(ApiResponse::succ( &error_msg))
 
 }
 
