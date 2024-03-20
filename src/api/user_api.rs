@@ -47,3 +47,11 @@ pub struct UserStatePatchReq {
     pub enable: bool,
     // pub id: i32,// 这个参数直接从 url 上面取了，所以可以不用
 }
+
+#[derive(Debug,Validate, Default, Deserialize, Serialize)]
+pub struct UserAddReq {
+    pub username: String,
+    pub password: String,
+    pub enable: i8,
+    pub roleIds: Vec<i32>,
+}

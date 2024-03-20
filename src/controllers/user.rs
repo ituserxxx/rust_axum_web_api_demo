@@ -2,9 +2,9 @@ use axum::{
     extract::{Extension, Json, Path, Query, Request},
     middleware::{self, Next},
 };
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use validator::Validate;
-
+use time::OffsetDateTime;
 use crate::tools;
 use crate::{
     api::resp::ApiResponse,
@@ -142,5 +142,32 @@ pub async fn statePatch(
         Ok(_) => {  },
         Err(err) => return Json(ApiResponse::err(&format!("获取用户信息失败:{:?}", err)))
     };
+    return Json(ApiResponse::succ(Some("ok".to_string())));
+}
+
+// 新增用户
+pub async fn add(
+    Extension(curr_user): Extension<comm_api::CurrentUser>,
+    Json(req): Json<user_api::UserAddReq>,
+) -> Json<ApiResponse<String>> {
+    if let Err(error) = req.validate() {
+        return Json(ApiResponse::new(400, None, &format!("{}", error)));
+    }
+    println!("req->{:?}", req);
+    println!("curr_user->{:?}", curr_user);
+    let user_data = user_model::User {
+        id:0,
+        username: req.username,
+        password: tools::md5_crypto(req.password),
+        enable: req.enable,
+        createTime: Utc::now(),
+        updateTime: Utc::now(),
+    };
+    let add_result = user_model::add_user_by_struct(user_data.clone()).await;
+    let result = match add_result {
+        Ok(_) => {  },
+        Err(err) => return Json(ApiResponse::err(&format!("新增用户信息失败:{:?}", err)))
+    };
+    // todo ss
     return Json(ApiResponse::succ(Some("ok".to_string())));
 }

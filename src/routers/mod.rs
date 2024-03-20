@@ -36,6 +36,7 @@ pub async fn init() -> Router {
         .route("/detail", get(user::detail))
         .route("/", get(user::list))
         .route("/:id", patch(user::statePatch))
+        .route("/", post(user::add))
         .layer(middleware::from_fn(auth::auth_jwt));
 
     let role_router = Router::new()
