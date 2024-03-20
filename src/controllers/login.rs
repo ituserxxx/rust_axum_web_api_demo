@@ -1,21 +1,12 @@
-use axum::{
-    extract::{Json,},
-    response::{IntoResponse},
-    http::Response,
-};
+use axum::{extract::Json, http::Response, response::IntoResponse};
 
+use axum_session::{Session, SessionNullPool};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use svg::Document;
-use axum_session::{Session, SessionNullPool};
 use validator::Validate;
 
-use crate::{
-    db::user_model,
-    api::login_api,
-    api::resp::ApiResponse,
-    tools,
-};
+use crate::{api::login_api, api::resp::ApiResponse, db::user_model, tools};
 
 // 获取验证码
 pub async fn show_captcha(session: Session<SessionNullPool>) -> impl IntoResponse {
@@ -51,7 +42,6 @@ pub async fn verify_captcha(
     let password = &req.password;
     let captcha = &req.captcha;
 
-
     if let Some(true_captcha) = session.get::<String>("captcha") {
         if true_captcha != captcha.to_string() {
             let error_msg = "验证码错误".to_string();
@@ -61,7 +51,11 @@ pub async fn verify_captcha(
         return Json(ApiResponse::err("验证码错误"));
     }
 
-    let query_result = user_model::fetch_user_by_username_password(username.to_string(), tools::md5_crypto(password.clone())).await;
+    let query_result = user_model::fetch_user_by_username_password(
+        username.to_string(),
+        tools::md5_crypto(password.clone()),
+    )
+    .await;
 
     let uinfo = match query_result {
         Ok(Some(user)) => user,
@@ -74,8 +68,6 @@ pub async fn verify_captcha(
         }
     };
     let token = tools::jwt::en_token(uinfo.id).await;
-    let rp = login_api::LoginResp {
-        accessToken: token,
-    };
+    let rp = login_api::LoginResp { accessToken: token };
     return Json(ApiResponse::succ(Some(rp)));
 }

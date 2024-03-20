@@ -11,12 +11,12 @@ pub struct LoginReq {
     #[serde(default)]
     pub captcha: String,
     #[serde(default)]
-    pub password:  String,
+    pub password: String,
     #[serde(default)]
-    pub username:  String,
+    pub username: String,
 }
 
-#[derive(Debug,Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct LoginResp {
     #[allow(non_snake_case)]
     pub accessToken: String,

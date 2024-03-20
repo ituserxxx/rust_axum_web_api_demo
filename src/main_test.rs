@@ -1,23 +1,21 @@
-
 use axum::{
-    Router, http,
-    routing::get,
-    middleware::{self, Next},
-    extract::{Request, Extension},
-    extract::rejection::JsonRejection,
-    Json,
-    response::{IntoResponse, Response},
     body::Body,
+    extract::rejection::JsonRejection,
+    extract::{Extension, Request},
+    http,
     http::StatusCode,
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    routing::get,
+    Json, Router,
 };
 
 use axum_extra::extract::WithRejection;
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use validator::Validate;
 
-
-#[derive(Clone,Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CurrentUser {
     pub id: i64,
 }
@@ -42,7 +40,8 @@ async fn auth_demo(req: Request, next: Next) -> Response {
 }
 
 async fn handle_auth_demo(mut req: Request, next: Next) -> Result<Response, StatusCode> {
-    let auth_header = req.headers()
+    let auth_header = req
+        .headers()
         .get(http::header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
 
@@ -55,46 +54,47 @@ async fn handle_auth_demo(mut req: Request, next: Next) -> Result<Response, Stat
         req.extensions_mut().insert(current_user);
         Ok(next.run(req).await)
     } else {
-         return Err(StatusCode::UNAUTHORIZED);
+        return Err(StatusCode::UNAUTHORIZED);
     }
 }
 
 async fn authorize_current_user(auth_token: &str) -> Option<CurrentUser> {
-    return Some(CurrentUser{id:1});
+    return Some(CurrentUser { id: 1 });
 }
-
-
 
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct UserInfoReq {
     #[serde(default)]
     #[validate(required)]
-    pub id:  Option<i64>,
+    pub id: Option<i64>,
 }
 
-pub async fn handler(Extension(current_user): Extension<CurrentUser>,Json(req): Json<UserInfoReq>) ->  Json<Option<CurrentUser>>{
+pub async fn handler(
+    Extension(current_user): Extension<CurrentUser>,
+    Json(req): Json<UserInfoReq>,
+) -> Json<Option<CurrentUser>> {
     if let Err(error) = req.validate() {
-            return Json(Some(CurrentUser{id:-1}));
-        }
-      println!("req: {:?}", req);
-      println!("Current user: {:?}", current_user);
-      return Json(Some(CurrentUser{id:123}));
+        return Json(Some(CurrentUser { id: -1 }));
+    }
+    println!("req: {:?}", req);
+    println!("Current user: {:?}", current_user);
+    return Json(Some(CurrentUser { id: 123 }));
 }
-pub async fn handler2(Json(req): Json<UserInfoReq>) ->  Json<Option<CurrentUser>>{
+pub async fn handler2(Json(req): Json<UserInfoReq>) -> Json<Option<CurrentUser>> {
     if let Err(error) = req.validate() {
-            return Json(Some(CurrentUser{id:-1}));
-        }
-      println!("req: {:?}", req);
-//       println!("Current user: {:?}", current_user);
-      return Json(Some(CurrentUser{id:123}));
+        return Json(Some(CurrentUser { id: -1 }));
+    }
+    println!("req: {:?}", req);
+    //       println!("Current user: {:?}", current_user);
+    return Json(Some(CurrentUser { id: 123 }));
 }
 
 #[tokio::main]
 async fn main() {
-// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/1
-// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/2
-// curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/3
-// curl -X GET -H "Content-Type: application/json"  -d '{"name":"xx1"}' http://127.0.0.1:8061/
+    // curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/1
+    // curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/2
+    // curl -X GET -H "Content-Type: application/json" -H "Authorization: xxxxxxxxx" -d '{"id":1111}' http://127.0.0.1:8061/3
+    // curl -X GET -H "Content-Type: application/json"  -d '{"name":"xx1"}' http://127.0.0.1:8061/
 
     let app = Router::new()
         .route("/1", get(handler))
@@ -107,7 +107,4 @@ async fn main() {
     println!("server port on {}", "0.0.0.0:8061");
     // 启动服务
     axum::serve(listener, router_init).await.unwrap();
-
 }
-
-

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ApiResponse<T> {
     code: u32,
-//     #[serde(default)]
+    //     #[serde(default)]
     data: Option<T>,
     message: String,
     // originUrl: Option<String>,
@@ -17,17 +17,17 @@ impl<T> ApiResponse<T> {
             message: msg.to_string(),
         }
     }
-    pub fn succ( data: Option<T>) -> Self {
+    pub fn succ(data: Option<T>) -> Self {
         ApiResponse {
-            code:0,
+            code: 0,
             data,
             message: "ok".to_string(),
         }
     }
     pub fn err(msg: &str) -> Self {
         ApiResponse {
-            code:500,
-            data:None,
+            code: 500,
+            data: None,
             message: msg.to_string(),
         }
     }

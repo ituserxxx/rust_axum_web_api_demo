@@ -1,62 +1,48 @@
-use validator::Validate;
-use chrono::Utc;
 use axum::{
+    extract::{Extension, Json, Request},
     middleware::{self, Next},
-    extract::{Request, Extension,Json},
 };
+use chrono::Utc;
 use std::rc::Rc;
+use validator::Validate;
 
 use crate::tools;
 use crate::{
-    db::{
-        user_model,
-        profile_model,
-        role_model,
-        user_roles_role_model,
-        permission_model,
-    },
-    api::{
-        user_api,
-        role_api::{
-            PermissionItem
-        },
-        comm_api,
-    },
-    api::resp::{
-        ApiResponse
-    },
+    api::resp::ApiResponse,
+    api::{comm_api, role_api::PermissionItem, user_api},
+    db::{permission_model, profile_model, role_model, user_model, user_roles_role_model},
 };
 
 pub async fn permissions_tree(
-    Extension(curr_user): Extension<comm_api::CurrentUser>
-) ->Json<ApiResponse<Option<Vec<PermissionItem>>>>  {
+    Extension(curr_user): Extension<comm_api::CurrentUser>,
+) -> Json<ApiResponse<Option<Vec<PermissionItem>>>> {
     let uid = curr_user.id;
 
     let is_admin_result = user_roles_role_model::find_is_admin_role_by_user_id(uid).await;
-    let is_admin = match is_admin_result{
-        Ok(a)=>a,
-        Err(err)=>{
+    let is_admin = match is_admin_result {
+        Ok(a) => a,
+        Err(err) => {
             let error_msg = format!("获取用户admin权限信息失败:{:?}", err);
-            return Json(ApiResponse::err( &error_msg))
+            return Json(ApiResponse::err(&error_msg));
         }
     };
-    let mut one_arr :Vec<permission_model::Permission> =Vec::new();
+    let mut one_arr: Vec<permission_model::Permission> = Vec::new();
     if is_admin {
         let find_1_level_result = permission_model::find_1_level().await;
-        one_arr = match find_1_level_result{
-            Ok(a)=>a,
-            Err(err)=>{
+        one_arr = match find_1_level_result {
+            Ok(a) => a,
+            Err(err) => {
                 let error_msg = format!("获取所有权限信息失败:{:?}", err);
-                return Json(ApiResponse::err( &error_msg))
+                return Json(ApiResponse::err(&error_msg));
             }
         };
-    }else{
+    } else {
         let find_1_level_result = permission_model::find_1_level_where_by_user_id(uid).await;
-        one_arr = match find_1_level_result{
-            Ok(a)=>a,
-            Err(err)=>{
+        one_arr = match find_1_level_result {
+            Ok(a) => a,
+            Err(err) => {
                 let error_msg = format!("获取用户权限信息失败:{:?}", err);
-                return Json(ApiResponse::err( &error_msg))
+                return Json(ApiResponse::err(&error_msg));
             }
         };
     }
@@ -77,14 +63,14 @@ pub async fn permissions_tree(
             method: one.method,
             description: one.description,
             show: one.show,
-            enable:one.enable,
+            enable: one.enable,
             order: one.order,
             children: Some(Vec::new()),
         });
         let find_2_result = permission_model::find_all_where_by_p_id(one.id).await;
         if let Ok(two_arr) = find_2_result {
-            let mut two_children:Vec<PermissionItem> = Vec::new();
-            for two in two_arr{
+            let mut two_children: Vec<PermissionItem> = Vec::new();
+            for two in two_arr {
                 let mut m2 = PermissionItem {
                     id: two.id,
                     name: two.name,
@@ -100,13 +86,13 @@ pub async fn permissions_tree(
                     method: two.method,
                     description: two.description,
                     show: two.show,
-                    enable:two.enable,
+                    enable: two.enable,
                     order: two.order,
                     children: Some(Vec::new()),
                 };
                 let find_3_result = permission_model::find_all_where_by_p_id(two.id).await;
                 if let Ok(three_arr) = find_3_result {
-                    let mut three_children : Vec<PermissionItem> = Vec::new();
+                    let mut three_children: Vec<PermissionItem> = Vec::new();
                     for three in three_arr {
                         let m3 = PermissionItem {
                             id: three.id,
@@ -129,15 +115,14 @@ pub async fn permissions_tree(
                         };
                         three_children.push(m3)
                     }
-                    m2.children =  Some(three_children.into_iter().map(Box::new).collect());
+                    m2.children = Some(three_children.into_iter().map(Box::new).collect());
                 }
                 two_children.push(m2)
             }
             // 将二级权限列表赋值给一级权限的子节点
-            m1.children =  Some(two_children.into_iter().map(Box::new).collect());
+            m1.children = Some(two_children.into_iter().map(Box::new).collect());
         }
         rp_arr.push(*m1);
     }
     return Json(ApiResponse::succ(Some(Some(rp_arr))));
 }
-

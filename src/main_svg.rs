@@ -1,9 +1,9 @@
-use svg::Document;
-use svg::node::element::Path;
-use svg::node::element::path::Data;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-fn main(){
+use svg::node::element::path::Data;
+use svg::node::element::Path;
+use svg::Document;
+fn main() {
     let captcha: String = thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
         .take(4)

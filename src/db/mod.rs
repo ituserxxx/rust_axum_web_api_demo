@@ -1,15 +1,14 @@
-
 use dotenv::dotenv;
 use std::env;
 
-use sqlx::mysql::{ MySqlPoolOptions};
-use std::sync::{Arc, Mutex};
 use lazy_static::lazy_static;
+use sqlx::mysql::MySqlPoolOptions;
+use std::sync::{Arc, Mutex};
 
-pub mod user_model;
+pub mod permission_model;
 pub mod profile_model;
 pub mod role_model;
-pub mod permission_model;
+pub mod user_model;
 pub mod user_roles_role_model;
 
 // 定义懒加载全局变量
@@ -32,10 +31,9 @@ pub async fn mysql_disconnect() -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-pub async  fn  mysql_connect() {
+pub async fn mysql_connect() {
     // 初始化连接池
     let pool = init_pool().await.unwrap();
     // 存储连接池到全局变量
     *DB_POOL.lock().unwrap() = Some(pool);
 }
-
