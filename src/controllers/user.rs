@@ -12,7 +12,7 @@ use crate::tools;
 use crate::{
     api::resp::ApiResponse,
     api::{comm_api, user_api},
-    db::{DB_POOL,profile_model, role_model, user_model,user_roles_role_model},
+    db::{DB_POOL, profile_model, role_model, user_model, user_roles_role_model},
 };
 
 // 获取用户详情
@@ -140,9 +140,9 @@ pub async fn statePatch(
     // println!("req->{:?}", req);
     // println!("id->{:?}", id);
     // println!("curr_user->{:?}", curr_user);
-    let update_result = user_model::update_enable_by_id(req.enable,id).await;
+    let update_result = user_model::update_enable_by_id(req.enable, id).await;
     let result = match update_result {
-        Ok(_) => {  },
+        Ok(_) => {}
         Err(err) => return Json(ApiResponse::err(&format!("获取用户信息失败:{:?}", err)))
     };
     return Json(ApiResponse::succ(Some("ok".to_string())));
@@ -158,57 +158,58 @@ pub async fn add(
     }
     println!("req->{:?}", req);
     println!("curr_user->{:?}", curr_user);
-    let pool = Arc::clone(&DB_POOL)
+    let pool = DB_POOL
         .lock()
         .unwrap()
         .as_ref()
         .expect("DB pool not initialized")
-        .unwrap();
-    let mut tx = pool.begin().await?;
-    match(tx){
-        Ok(tx)=>{
-            // 新增用户
-            let user_data = user_model::User {
-                id:0,
-                username: req.username,
-                password: tools::md5_crypto(req.password),
-                enable: req.enable,
-                createTime: Utc::now(),
-                updateTime: Utc::now(),
-            };
-            let add_result = user_model::add_user_by_struct(tx,user_data.clone()).await;
-            let mut add_u_id = 0;
-            match add_result {
-                Ok(res) => {
-                    add_u_id = res.last_insert_id();
-                },
-                Err(err) => {
-                    tx.rollback().await?;
-                    return Json(ApiResponse::err(&format!("新增用户信息失败:{:?}", err)))
-                }
-            };
-
-            // 新增用户权限关联
-            for roid in req.roleIds{
-                let add_data = user_roles_role_model::UserRolesRole {
-                    userId: add_u_id,
-                    roleId: roid
-
-                };
-                let add_result = user_roles_role_model::add_user_role_by_struct(tx,add_data.clone()).await;
-                let result = match add_result {
-                    Ok(_) => {  },
-                    Err(err) => {
-                        tx.rollback().await?;
-                        return Json(ApiResponse::err(&format!("新增用户权限失败:{:?}", err)))
-                    }
-                };
-            }
-            tx.commit().await?;
-        },
+        .clone();
+    let &mut tx = match pool.begin().await {
+        Ok(tx) => tx,
+        Err(err) => return Json(ApiResponse::err(&format!("开启事务失败:{:?}", err)))
+    };
+    // 新增用户
+    let user_data = user_model::User {
+        id: 0,
+        username: req.username,
+        password: tools::md5_crypto(req.password),
+        enable: req.enable as i8,
+        createTime: Utc::now(),
+        updateTime: Utc::now(),
+    };
+    let mut add_u_id = 0;
+    let add_result = user_model::add_user_by_struct(tx, user_data.clone()).await?;
+    match add_result {
+        Ok(res) => {
+            add_u_id = res.last_insert_id();
+        }
         Err(err) => {
-            return Json(ApiResponse::err(&format!("开启事务失败:{:?}", err)))
+            if let Err(rollback_err) = tx.commit().await {
+                return Json(ApiResponse::err(&format!("事务提交失败: {:?}", rollback_err)));
+            }
+            return Json(ApiResponse::err(&format!("新增用户信息失败:{:?}", err)));
         }
     };
+
+    // 新增用户权限关联
+    for roid in req.roleIds {
+        let add_data = user_roles_role_model::UserRolesRole {
+            userId: add_u_id as i64,
+            roleId: roid ,
+        };
+        match user_roles_role_model::add_user_role_by_struct(tx, add_data.clone()).await? {
+            Ok(_) => {}
+            Err(err) => {
+                if let Err(rollback_err) = tx.commit().await {
+                    return Json(ApiResponse::err(&format!("事务提交失败: {:?}", rollback_err)));
+                }
+                return Json(ApiResponse::err(&format!("新增用户权限失败:{:?}", err)));
+            }
+        };
+    }
+
+    if let Err(commit_err) = tx.commit().await {
+        return Json(ApiResponse::err(&format!("事务提交失败: {:?}", commit_err)));
+    }
     return Json(ApiResponse::succ(Some("ok".to_string())));
 }

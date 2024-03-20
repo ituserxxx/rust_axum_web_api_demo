@@ -52,6 +52,6 @@ pub struct UserStatePatchReq {
 pub struct UserAddReq {
     pub username: String,
     pub password: String,
-    pub enable: i8,
-    pub roleIds: Vec<i32>,
+    pub enable: i64,
+    pub roleIds: Vec<i64>,
 }

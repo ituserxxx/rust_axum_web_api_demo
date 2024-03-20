@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlQueryResult,MySqlPool, Encode, Row};
+use sqlx::{mysql::MySqlQueryResult, MySqlPool, Encode, Row, Transaction, MySql};
 use std::clone::Clone;
 // 引入全局变量
 use super::DB_POOL;
@@ -61,18 +61,13 @@ pub async fn find_is_admin_role_by_user_id(uid: i64) -> Result<bool, sqlx::Error
     Ok(count_equals_one)
 }
 // 新增用户权限关系（需要加事务，所以pool从外面传进来）
-pub async fn add_user_role_by_struct(pool: &MySqlPool,data: UserRolesRole) -> Result<MySqlQueryResult, sqlx::Error> {
-    let pool = DB_POOL
-        .lock()
-        .unwrap()
-        .as_ref()
-        .expect("DB pool not initialized")
-        .clone();
+pub async fn add_user_role_by_struct(mut pool: Transaction<MySql>, data: UserRolesRole) -> Result<MySqlQueryResult, sqlx::Error> {
+
     let insert_sql = "INSERT INTO user_roles_role (userId, roleId) VALUES (?, ?)";
     let result = sqlx::query(&insert_sql)
         .bind(&data.userId)
         .bind(&data.roleId)
-        .execute(&pool)
+        .execute(&mut *pool)
         .await?;
     Ok(result)
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
