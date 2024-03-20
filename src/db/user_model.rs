@@ -1,7 +1,7 @@
 use axum::extract::Query;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlQueryResult, Encode, Row};
+use sqlx::{mysql::MySqlQueryResult,MySqlPool, Encode, Row};
 use std::clone::Clone;
 // 引入全局变量
 use super::DB_POOL;
@@ -119,14 +119,9 @@ pub async fn delete_user_by_id(id: i64) -> Result<MySqlQueryResult, sqlx::Error>
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
 }
 
-// 新增
-pub async fn add_user_by_struct(data: User) -> Result<MySqlQueryResult, sqlx::Error> {
-    let pool = DB_POOL
-        .lock()
-        .unwrap()
-        .as_ref()
-        .expect("DB pool not initialized")
-        .clone();
+// 新增用户（需要加事务，所以pool从外面传进来）
+pub async fn add_user_by_struct(pool: &MySqlPool,data: User) -> Result<MySqlQueryResult, sqlx::Error> {
+
     let insert_sql = "INSERT INTO user (username, password, enable, createTime, updateTime) VALUES (?, ?, ?, ?, ?)";
     let result = sqlx::query(&insert_sql)
         .bind(&data.username)
@@ -134,7 +129,7 @@ pub async fn add_user_by_struct(data: User) -> Result<MySqlQueryResult, sqlx::Er
         .bind(&data.enable)
         .bind(&data.createTime)
         .bind(&data.updateTime)
-        .execute(&pool)
+        .execute(pool)
         .await?;
     Ok(result)
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
