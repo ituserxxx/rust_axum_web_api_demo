@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Extension, Json, Query, Request},
+    extract::{Extension, Json, Path, Query, Request},
     middleware::{self, Next},
 };
 use chrono::Utc;
@@ -123,4 +123,24 @@ pub async fn list(
         rp.push(tmp)
     }
     return Json(ApiResponse::succ(Some(rp)));
+}
+
+// 状态停用/启用
+pub async fn statePatch(
+    Extension(curr_user): Extension<comm_api::CurrentUser>,
+    Path(id): Path<i64>,
+    Json(req): Json<user_api::UserStatePatchReq>,
+) -> Json<ApiResponse<String>> {
+    if let Err(error) = req.validate() {
+        return Json(ApiResponse::new(400, None, &format!("{}", error)));
+    }
+    println!("req->{:?}", req);
+    println!("id->{:?}", id);
+    println!("curr_user->{:?}", curr_user);
+    let update_result = user_model::update_enable_by_id(req.enable,id).await;
+    let result = match update_result {
+        Ok(_) => {  },
+        Err(err) => return Json(ApiResponse::err(&format!("获取用户信息失败:{:?}", err)))
+    };
+    return Json(ApiResponse::succ(Some("ok".to_string())));
 }

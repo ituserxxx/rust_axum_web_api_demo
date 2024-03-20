@@ -1,6 +1,6 @@
 use crate::{db::profile_model, db::role_model};
 use serde::{Deserialize, Serialize};
-
+use validator::Validate;
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct UserDetailRes {
     pub id: i64,
@@ -40,4 +40,10 @@ pub struct UserListItem {
     pub updateTime: String,
     pub profile: profile_model::Profile,
     pub roles: Vec<role_model::Role>,
+}
+
+#[derive(Debug,Validate, Default, Deserialize, Serialize)]
+pub struct UserStatePatchReq {
+    pub enable: bool,
+    // pub id: i32,// 这个参数直接从 url 上面取了，所以可以不用
 }

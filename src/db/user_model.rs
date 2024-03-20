@@ -83,6 +83,25 @@ pub async fn update_username_by_id(
     Ok(result)
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
 }
+// 更新 enable 通过 id
+pub async fn update_enable_by_id(
+    enable: bool,
+    id: i64,
+) -> Result<MySqlQueryResult, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let result = sqlx::query("update user set enable = ? where id = ?")
+        .bind(&enable)
+        .bind(id)
+        .execute(&pool)
+        .await?;
+    Ok(result)
+    // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
+}
 
 // 删除记录-通过 id
 pub async fn delete_user_by_id(id: i64) -> Result<MySqlQueryResult, sqlx::Error> {
