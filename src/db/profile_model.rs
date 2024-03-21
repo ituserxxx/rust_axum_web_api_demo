@@ -1,7 +1,7 @@
 use axum::extract::Query;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{mysql::MySqlQueryResult, Encode, Row};
+use sqlx::{mysql::MySqlQueryResult, Encode, MySql, Row, Transaction};
 use std::clone::Clone;
 // 引入全局变量
 use super::DB_POOL;
@@ -106,4 +106,24 @@ pub async fn fetch_all_profile(
     }
 
     Ok(list)
+}
+
+// 新增用户 Profile（需要加事务，所以 pool 从外面传进来）
+pub async fn add_profile_by_struct(
+    pool: &mut Transaction<'_, MySql>,
+    data: Profile,
+) -> Result<u64, sqlx::Error> {
+    let insert_sql = "INSERT INTO profile (gender, avatar, address, email, userId,nickName ) VALUES (?, ?, ?, ?, ?,?)";
+    let result = sqlx::query(&insert_sql)
+        .bind(&data.gender)
+        .bind(&data.avatar)
+        .bind(&data.address)
+        .bind(&data.email)
+        .bind(&data.userId)
+        .bind(&data.nickName)
+        .execute(pool)
+        .await?;
+    // 获取新插入记录的 id
+    let new_id = result.last_insert_id();
+    Ok(new_id)
 }

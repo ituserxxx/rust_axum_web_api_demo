@@ -13,7 +13,7 @@ pub mod user_roles_role_model;
 
 // 定义懒加载全局变量
 lazy_static! {
-   pub static ref DB_POOL: Arc<Mutex<Option<sqlx::MySqlPool>>> = Arc::new(Mutex::new(None));
+    pub static ref DB_POOL: Arc<Mutex<Option<sqlx::MySqlPool>>> = Arc::new(Mutex::new(None));
 }
 // 连接数据库
 async fn init_pool() -> Result<sqlx::MySqlPool, sqlx::Error> {

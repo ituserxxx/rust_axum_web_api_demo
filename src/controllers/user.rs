@@ -1,18 +1,18 @@
+use crate::tools;
 use axum::{
     extract::{Extension, Json, Path, Query, Request},
     middleware::{self, Next},
 };
 use chrono::{DateTime, Utc};
-use validator::Validate;
-use time::OffsetDateTime;
-use std::sync::Arc;
 use sqlx::MySqlPool;
-use crate::tools;
+use std::sync::Arc;
+use time::OffsetDateTime;
+use validator::Validate;
 // use crate::db::DB_POOL;
 use crate::{
     api::resp::ApiResponse,
     api::{comm_api, user_api},
-    db::{DB_POOL, profile_model, role_model, user_model, user_roles_role_model},
+    db::{profile_model, role_model, user_model, user_roles_role_model, DB_POOL},
 };
 
 // 获取用户详情
@@ -129,7 +129,7 @@ pub async fn list(
 }
 
 // 状态停用/启用
-pub async fn statePatch(
+pub async fn state_patch(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
     Path(id): Path<i64>,
     Json(req): Json<user_api::UserStatePatchReq>,
@@ -143,7 +143,7 @@ pub async fn statePatch(
     let update_result = user_model::update_enable_by_id(req.enable, id).await;
     let result = match update_result {
         Ok(_) => {}
-        Err(err) => return Json(ApiResponse::err(&format!("获取用户信息失败:{:?}", err)))
+        Err(err) => return Json(ApiResponse::err(&format!("获取用户信息失败:{:?}", err))),
     };
     return Json(ApiResponse::succ(Some("ok".to_string())));
 }
@@ -164,28 +164,27 @@ pub async fn add(
         .as_ref()
         .expect("DB pool not initialized")
         .clone();
-    let &mut tx = match pool.begin().await {
+    let mut tx = match pool.begin().await {
         Ok(tx) => tx,
-        Err(err) => return Json(ApiResponse::err(&format!("开启事务失败:{:?}", err)))
+        Err(err) => return Json(ApiResponse::err(&format!("开启事务失败:{:?}", err))),
     };
     // 新增用户
     let user_data = user_model::User {
         id: 0,
-        username: req.username,
+        username: req.username.clone(),
         password: tools::md5_crypto(req.password),
         enable: req.enable as i8,
         createTime: Utc::now(),
         updateTime: Utc::now(),
     };
-    let mut add_u_id = 0;
-    let add_result = user_model::add_user_by_struct(tx, user_data.clone()).await?;
-    match add_result {
-        Ok(res) => {
-            add_u_id = res.last_insert_id();
-        }
+    let add_u_id = match user_model::add_user_by_struct(&mut tx, user_data.clone()).await {
+        Ok(id) => id,
         Err(err) => {
-            if let Err(rollback_err) = tx.commit().await {
-                return Json(ApiResponse::err(&format!("事务提交失败: {:?}", rollback_err)));
+            if let Err(rollback_err) = tx.rollback().await {
+                return Json(ApiResponse::err(&format!(
+                    "事务提交失败: {:?}",
+                    rollback_err
+                )));
             }
             return Json(ApiResponse::err(&format!("新增用户信息失败:{:?}", err)));
         }
@@ -195,18 +194,47 @@ pub async fn add(
     for roid in req.roleIds {
         let add_data = user_roles_role_model::UserRolesRole {
             userId: add_u_id as i64,
-            roleId: roid ,
+            roleId: roid,
         };
-        match user_roles_role_model::add_user_role_by_struct(tx, add_data.clone()).await? {
+        match user_roles_role_model::add_user_role_by_struct(&mut tx, add_data.clone()).await {
             Ok(_) => {}
             Err(err) => {
-                if let Err(rollback_err) = tx.commit().await {
-                    return Json(ApiResponse::err(&format!("事务提交失败: {:?}", rollback_err)));
+                if let Err(rollback_err) = tx.rollback().await {
+                    return Json(ApiResponse::err(&format!(
+                        "事务提交失败: {:?}",
+                        rollback_err
+                    )));
                 }
                 return Json(ApiResponse::err(&format!("新增用户权限失败:{:?}", err)));
             }
         };
     }
+    // 新增用户信息 profile
+    let profile_data = profile_model::Profile {
+        id:0,
+        gender: Some(0),
+        avatar: String::default(),
+        address: Some(String::default()),
+        email: Some(String::default()),
+        userId: add_u_id as i64,
+        nickName:  Some(req.username.clone()),
+
+    };
+    match profile_model::add_profile_by_struct(&mut tx, profile_data.clone()).await {
+        Ok(_) => {}
+        Err(err) => {
+            if let Err(rollback_err) = tx.rollback().await {
+                return Json(ApiResponse::err(&format!(
+                    "事务提交失败: {:?}",
+                    rollback_err
+                )));
+            }
+            return Json(ApiResponse::err(&format!(
+                "新增用户profile信息失败:{:?}",
+                err
+            )));
+        }
+    };
 
     if let Err(commit_err) = tx.commit().await {
         return Json(ApiResponse::err(&format!("事务提交失败: {:?}", commit_err)));

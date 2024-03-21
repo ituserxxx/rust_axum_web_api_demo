@@ -12,7 +12,14 @@ use crate::{
     api::{comm_api, role_api::PermissionItem, user_api},
     db::{permission_model, profile_model, role_model, user_model, user_roles_role_model},
 };
-
+pub async fn all(
+    Extension(curr_user): Extension<comm_api::CurrentUser>,
+) -> Json<ApiResponse<Vec<role_model::Role>>> {
+    return match role_model::fetch_all().await {
+        Ok(a) => Json(ApiResponse::succ(Some(a))),
+        Err(err) => Json(ApiResponse::err(&format!("获取所有权限失败:{:?}", err))),
+    };
+}
 pub async fn permissions_tree(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
 ) -> Json<ApiResponse<Option<Vec<PermissionItem>>>> {

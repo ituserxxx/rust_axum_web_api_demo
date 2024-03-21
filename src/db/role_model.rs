@@ -39,3 +39,16 @@ pub async fn fetch_all_where_user_id(uid: i64) -> Result<Vec<Role>, sqlx::Error>
     .await?;
     Ok(rows)
 }
+// 查询所有
+pub async fn fetch_all() -> Result<Vec<Role>, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let rows = sqlx::query_as::<_, Role>("SELECT * FROM `role`")
+        .fetch_all(&pool)
+        .await?;
+    Ok(rows)
+}

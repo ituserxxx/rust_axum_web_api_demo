@@ -42,16 +42,16 @@ pub struct UserListItem {
     pub roles: Vec<role_model::Role>,
 }
 
-#[derive(Debug,Validate, Default, Deserialize, Serialize)]
+#[derive(Debug, Validate, Default, Deserialize, Serialize)]
 pub struct UserStatePatchReq {
     pub enable: bool,
     // pub id: i32,// 这个参数直接从 url 上面取了，所以可以不用
 }
 
-#[derive(Debug,Validate, Default, Deserialize, Serialize)]
+#[derive(Debug, Validate, Default, Deserialize, Serialize)]
 pub struct UserAddReq {
     pub username: String,
     pub password: String,
-    pub enable: i64,
+    pub enable: bool,
     pub roleIds: Vec<i64>,
 }
