@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 pub mod permission_model;
 pub mod profile_model;
 pub mod role_model;
+pub mod role_permissions_permission;
 pub mod user_model;
 pub mod user_roles_role_model;
 

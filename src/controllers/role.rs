@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Extension, Json, Request},
+    extract::{Extension, Json, Query, Request},
     middleware::{self, Next},
 };
 use chrono::Utc;
@@ -9,22 +9,24 @@ use validator::Validate;
 use crate::tools;
 use crate::{
     api::resp::ApiResponse,
-    api::{comm_api, role_api::PermissionItem, user_api},
-    db::{permission_model, profile_model, role_model, user_model, user_roles_role_model},
+    api::{comm_api, role_api, user_api},
+    db::{
+        permission_model, profile_model, role_model, role_permissions_permission, user_model,
+        user_roles_role_model,
+    },
 };
 pub async fn all(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
 ) -> Json<ApiResponse<Vec<role_model::Role>>> {
-    return match role_model::fetch_all().await {
+    return match role_model::fetch_all_role().await {
         Ok(a) => Json(ApiResponse::succ(Some(a))),
         Err(err) => Json(ApiResponse::err(&format!("获取所有权限失败:{:?}", err))),
     };
 }
 pub async fn permissions_tree(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
-) -> Json<ApiResponse<Option<Vec<PermissionItem>>>> {
+) -> Json<ApiResponse<Option<Vec<role_api::PermissionItem>>>> {
     let uid = curr_user.id;
-
     let is_admin_result = user_roles_role_model::find_is_admin_role_by_user_id(uid).await;
     let is_admin = match is_admin_result {
         Ok(a) => a,
@@ -53,9 +55,9 @@ pub async fn permissions_tree(
             }
         };
     }
-    let mut rp_arr: Vec<PermissionItem> = Vec::new();
+    let mut rp_arr: Vec<role_api::PermissionItem> = Vec::new();
     for one in one_arr {
-        let mut m1 = Box::new(PermissionItem {
+        let mut m1 = Box::new(role_api::PermissionItem {
             id: one.id,
             name: one.name,
             code: one.code,
@@ -76,9 +78,9 @@ pub async fn permissions_tree(
         });
         let find_2_result = permission_model::find_all_where_by_p_id(one.id).await;
         if let Ok(two_arr) = find_2_result {
-            let mut two_children: Vec<PermissionItem> = Vec::new();
+            let mut two_children: Vec<role_api::PermissionItem> = Vec::new();
             for two in two_arr {
-                let mut m2 = PermissionItem {
+                let mut m2 = role_api::PermissionItem {
                     id: two.id,
                     name: two.name,
                     code: two.code,
@@ -99,9 +101,9 @@ pub async fn permissions_tree(
                 };
                 let find_3_result = permission_model::find_all_where_by_p_id(two.id).await;
                 if let Ok(three_arr) = find_3_result {
-                    let mut three_children: Vec<PermissionItem> = Vec::new();
+                    let mut three_children: Vec<role_api::PermissionItem> = Vec::new();
                     for three in three_arr {
-                        let m3 = PermissionItem {
+                        let m3 = role_api::PermissionItem {
                             id: three.id,
                             name: three.name,
                             code: three.code,
@@ -132,4 +134,45 @@ pub async fn permissions_tree(
         rp_arr.push(*m1);
     }
     return Json(ApiResponse::succ(Some(Some(rp_arr))));
+}
+pub async fn page_list(
+    Extension(curr_user): Extension<comm_api::CurrentUser>,
+    req: Query<role_api::RolePageReq>,
+) -> Json<ApiResponse<role_api::RolePageResp>> {
+    let result = role_model::fetch_all_by_req(req).await;
+    let all_role = match result {
+        Ok(u) => u,
+        Err(err) => return Json(ApiResponse::err(&format!("获取列表信息失败:{:?}", err))),
+    };
+    let mut list_item = Vec::new();
+    for ro in all_role {
+        let mut tmp = role_api::RolePageItem::default();
+        tmp.id = ro.id;
+        tmp.name = ro.name;
+        tmp.code = ro.code;
+        tmp.enable = ro.enable != 0;
+        // 获取 permission ids
+        let perm_ids_result =
+            role_permissions_permission::fetch_permission_ids_where_role_id(tmp.id).await;
+        let perm_ids = match perm_ids_result {
+            Ok(rows) => {
+                if !rows.is_empty() {
+                    rows
+                } else {
+                    Vec::new()
+                }
+            }
+            Err(err) => {
+                return Json(ApiResponse::err(&format!(
+                    "获取角色菜单权限列表失败:{:?}",
+                    err
+                )))
+            }
+        };
+        list_item.push(tmp)
+    }
+    let mut rp = role_api::RolePageResp {
+        pageData: Some(list_item),
+    };
+    return Json(ApiResponse::succ(Some(rp)));
 }

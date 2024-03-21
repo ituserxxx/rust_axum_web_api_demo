@@ -11,8 +11,8 @@ use axum_session::{Session, SessionConfig, SessionLayer, SessionNullPool, Sessio
 use std::sync::{Arc, Mutex};
 
 use crate::{
-    api::login_api, controllers::hello, controllers::login, controllers::role, controllers::user,
-    middleware::auth,
+    api::login_api, controllers::hello, controllers::login, controllers::permission,
+    controllers::role, controllers::user, middleware::auth,
 };
 
 pub async fn init() -> Router {
@@ -42,6 +42,11 @@ pub async fn init() -> Router {
     let role_router = Router::new()
         .route("/", get(role::all))
         .route("/permissions/tree", get(role::permissions_tree))
+        .route("/page", get(role::page_list))
+        .layer(middleware::from_fn(auth::auth_jwt));
+
+    let permission_router = Router::new()
+        .route("/tree", get(permission::tree))
         .layer(middleware::from_fn(auth::auth_jwt));
 
     return Router::new()
@@ -49,5 +54,6 @@ pub async fn init() -> Router {
         .nest("/hello", hello_router)
         .nest("/api/auth", auth_router)
         .nest("/api/user", user_router)
-        .nest("/api/role", role_router);
+        .nest("/api/role", role_router)
+        .nest("/api/permission", permission_router);
 }

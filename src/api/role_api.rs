@@ -22,3 +22,29 @@ pub struct PermissionItem {
     pub order: i64,
     pub children: Option<Vec<Box<PermissionItem>>>,
 }
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct RolePageReq {
+    #[allow(non_snake_case)]
+    pub pageNo: Option<i64>, //  可传：默认1
+    #[allow(non_snake_case)]
+    pub pageSize: Option<i64>, //  可传：默认10
+    pub name: Option<String>,
+    pub enable: Option<bool>,
+}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct RolePageResp {
+    #[allow(non_snake_case)]
+    pub pageData: Option<Vec<RolePageItem>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct RolePageItem {
+    pub id: i64,
+    pub name: String,
+    pub code: String,
+    pub enable: bool,
+    #[allow(non_snake_case)]
+    pub permissionIds: Option<Vec<i64>>,
+}

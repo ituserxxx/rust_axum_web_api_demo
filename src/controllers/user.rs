@@ -8,7 +8,6 @@ use sqlx::MySqlPool;
 use std::sync::Arc;
 use time::OffsetDateTime;
 use validator::Validate;
-// use crate::db::DB_POOL;
 use crate::{
     api::resp::ApiResponse,
     api::{comm_api, user_api},
@@ -86,7 +85,6 @@ pub async fn list(
         Err(err) => return Json(ApiResponse::err(&format!("获取角色信息失败:{:?}", err))),
     };
     let mut rp = Vec::new();
-
     for u_profile in all_user_profile {
         // 循环里面的逻辑其实跟 detail详情一样的，只是少了一个 currentRole 字段而已
         let mut tmp = user_api::UserListItem::default();
@@ -211,14 +209,13 @@ pub async fn add(
     }
     // 新增用户信息 profile
     let profile_data = profile_model::Profile {
-        id:0,
+        id: 0,
         gender: Some(0),
         avatar: String::default(),
         address: Some(String::default()),
         email: Some(String::default()),
         userId: add_u_id as i64,
-        nickName:  Some(req.username.clone()),
-
+        nickName: Some(req.username.clone()),
     };
     match profile_model::add_profile_by_struct(&mut tx, profile_data.clone()).await {
         Ok(_) => {}
