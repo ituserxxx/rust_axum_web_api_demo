@@ -82,6 +82,7 @@ pub async fn update_username_by_id(
     Ok(result)
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
 }
+
 // 更新 enable 通过 id
 pub async fn update_enable_by_id(enable: bool, id: i64) -> Result<MySqlQueryResult, sqlx::Error> {
     let pool = DB_POOL
@@ -131,4 +132,24 @@ pub async fn add_user_by_struct(
     // 获取新插入记录的 id
     let new_id = result.last_insert_id();
     Ok(new_id)
+}
+
+// 更新 password 通过 id
+pub async fn update_password_by_id(
+    password: String,
+    id: i64,
+) -> Result<MySqlQueryResult, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let result = sqlx::query("update user set password = ? where id = ?")
+        .bind(&password)
+        .bind(id)
+        .execute(&pool)
+        .await?;
+    Ok(result)
+    // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
 }

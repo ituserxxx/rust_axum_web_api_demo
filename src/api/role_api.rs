@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-
+use validator::Validate;
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct PermissionItem {
     pub id: i64,
@@ -23,7 +23,7 @@ pub struct PermissionItem {
     pub children: Option<Vec<Box<PermissionItem>>>,
 }
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Validate, Default, Deserialize, Serialize)]
 pub struct RolePageReq {
     #[allow(non_snake_case)]
     pub pageNo: Option<i64>, //  可传：默认1
@@ -47,4 +47,18 @@ pub struct RolePageItem {
     pub enable: bool,
     #[allow(non_snake_case)]
     pub permissionIds: Option<Vec<i64>>,
+}
+#[derive(Debug, Clone, Validate, Default, Deserialize, Serialize)]
+pub struct RolePatchReq {
+    pub enable: bool,
+    pub name: Option<String>, // 根据这个判断是否是修改状态
+    pub code: Option<String>,
+    #[allow(non_snake_case)]
+    pub permissionIds: Option<Vec<i64>>,
+}
+
+#[derive(Debug, Clone, Validate, Default, Deserialize, Serialize)]
+pub struct RoleAddUserReq {
+    #[allow(non_snake_case)]
+    pub userIds: Vec<i64>,
 }

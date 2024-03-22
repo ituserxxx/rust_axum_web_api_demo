@@ -50,3 +50,32 @@ pub async fn fetch_permission_ids_where_role_id(mut role_id: i64) -> Result<Vec<
     let permission_ids: Vec<i64> = rows.iter().map(|row| row.permissionId).collect();
     Ok(permission_ids)
 }
+// 删除角色权限关系记录-通过 role_id (需要加事务，所以 pool 从外面传进来)
+pub async fn delete_permissions_by_role_id(
+    pool: &mut Transaction<'_, MySql>,
+    role_id: i64,
+) -> Result<(), sqlx::Error> {
+    let result = sqlx::query("delete from role_permissions_permission where roleId = ?")
+        .bind(role_id)
+        .execute(pool)
+        .await?;
+    // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
+    let rows_affected = result.rows_affected();
+    Ok(())
+}
+
+// 新增角色权限关系（需要加事务，所以 pool 从外面传进来）
+pub async fn add_role_permissions_by_struct(
+    pool: &mut Transaction<'_, MySql>,
+    data: RolePermissionsPermission,
+) -> Result<u64, sqlx::Error> {
+    let insert_sql = "INSERT INTO role_permissions_permission (permissionId, roleId) VALUES (?, ?)";
+    let result = sqlx::query(&insert_sql)
+        .bind(&data.permissionId)
+        .bind(&data.roleId)
+        .execute(pool)
+        .await?;
+    // 获取新插入记录的 id
+    let new_id = result.last_insert_id();
+    Ok(new_id)
+}

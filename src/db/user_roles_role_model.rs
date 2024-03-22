@@ -80,12 +80,29 @@ pub async fn add_user_role_by_struct(
 pub async fn delete_user_roles_by_user_id(
     pool: &mut Transaction<'_, MySql>,
     uid: i64,
-) -> Result<bool, sqlx::Error> {
+) -> Result<(), sqlx::Error> {
     let result = sqlx::query("delete from user_roles_role where userId = ?")
         .bind(uid)
         .execute(pool)
         .await?;
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
     let rows_affected = result.rows_affected();
-    Ok(rows_affected > 0)
+    Ok(())
+}
+
+
+// 取消绑定角色的用户 (这里是直接操作 user_roles_role，不需要加事务)
+pub async fn delete_user_roles_by_user_role_id(
+    pool: &mut Transaction<'_, MySql>,
+    userId:i64,
+    role_id:i64,
+) -> Result<u64, sqlx::Error> {
+    let result = sqlx::query("delete from user_roles_role where userId = ? and roleId=?")
+        .bind(userId)
+        .bind(role_id)
+        .execute(pool)
+        .await?;
+    // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
+    let rows_affected = result.rows_affected();
+    Ok(rows_affected)
 }

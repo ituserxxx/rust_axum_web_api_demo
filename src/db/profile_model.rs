@@ -141,3 +141,44 @@ pub async fn delete_profile_by_user_id(
     let rows_affected = result.rows_affected();
     Ok(rows_affected == 1)
 }
+
+// 更新用户 Profile
+pub async fn update_profile_by_struct(data: Profile) -> Result<bool, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let sql_str = "UPDATE profile  SET gender=?, address=?, email=?, nickName=? where userId =?  ";
+    let result = sqlx::query(&sql_str)
+        .bind(&data.gender)
+        .bind(&data.address)
+        .bind(&data.email)
+        .bind(&data.nickName)
+        .bind(&data.userId)
+        .execute(&pool)
+        .await?;
+    let rows_aff = result.rows_affected();
+    Ok(rows_aff > 0)
+}
+// 更新用户 Profile avatar
+pub async fn update_profile_avatar_by_user_id(
+    avatar: String,
+    userId: i64,
+) -> Result<bool, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let sql_str = "UPDATE profile  SET avatar=?  where userId =?  ";
+    let result = sqlx::query(&sql_str)
+        .bind(avatar)
+        .bind(userId)
+        .execute(&pool)
+        .await?;
+    let rows_aff = result.rows_affected();
+    Ok(rows_aff > 0)
+}

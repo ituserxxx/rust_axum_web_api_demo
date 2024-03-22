@@ -43,9 +43,10 @@ pub struct UserListItem {
 }
 
 #[derive(Debug, Validate, Default, Deserialize, Serialize)]
-pub struct UserStatePatchReq {
-    pub enable: bool,
+pub struct UserPatchReq {
+    pub enable: Option<bool>, // 如何不传这个字段，则是分配权限，
     // pub id: i32,// 这个参数直接从 url 上面取了，所以可以不用
+    pub roleIds: Option<Vec<i64>>, // 不能根据这个字段长度来判断是否是分配权限
 }
 
 #[derive(Debug, Validate, Default, Deserialize, Serialize)]
@@ -53,5 +54,26 @@ pub struct UserAddReq {
     pub username: String,
     pub password: String,
     pub enable: bool,
-    pub roleIds: Vec<i64>,
+    pub roleIds: Option<Vec<i64>>,
+}
+#[derive(Debug, Validate, Default, Deserialize, Serialize)]
+pub struct UserResetpwdPatchReq {
+    pub password: String,
+    // pub id: i32,// 这个参数直接从 url 上面取了，所以可以不用
+}
+
+#[derive(Debug, Validate, Default, Deserialize, Serialize)]
+pub struct UserProfilePatchReq {
+    pub address: Option<String>,
+    pub avatar: Option<String>,
+    pub email: Option<String>,
+    pub gender: Option<i64>,
+    pub nickName: Option<String>,
+    // pub id: i32,// 这个参数直接从 url 上面取了，所以可以不用
+}
+
+#[derive(Debug, Validate, Default, Deserialize, Serialize)]
+pub struct UpdatePasswdReq {
+    pub newPassword: String,
+    pub oldPassword: String,
 }

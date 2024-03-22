@@ -3,4 +3,4 @@
 
 开发仓库在：https://github.com/ituserxxx/rust_axum_web_api_demo
  
-使用 axum session sqlx mysql等技术栈
+使用 axum session sqlx mysql 等技术栈

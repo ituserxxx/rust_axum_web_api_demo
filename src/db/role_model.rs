@@ -1,8 +1,7 @@
 use axum::extract::Query;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::mysql::MySqlQueryResult;
-use sqlx::Row;
+use sqlx::{mysql::MySqlQueryResult, Encode, MySql, MySqlPool, Row, Transaction};
 use std::clone::Clone;
 
 // 引入全局变量
@@ -104,4 +103,46 @@ pub async fn fetch_all_by_req(req: Query<role_api::RolePageReq>) -> Result<Vec<R
     }
 
     Ok(list)
+}
+
+// 更新 enable 通过 id
+pub async fn update_enable_by_id(enable: bool, id: i64) -> Result<MySqlQueryResult, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let result = sqlx::query("update role set enable = ? where id = ?")
+        .bind(&enable)
+        .bind(id)
+        .execute(&pool)
+        .await?;
+    Ok(result)
+    // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
+}
+
+
+
+// 更新 Role
+pub async fn update_role_by_struct(
+    pool: &mut Transaction<'_, MySql>,
+    data: Role
+) -> Result<bool, sqlx::Error> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let sql_str = "UPDATE role  SET code=?,name=?,enable=? where id =?  ";
+    let result = sqlx::query(&sql_str)
+        .bind(&data.code)
+        .bind(&data.name)
+        .bind(&data.enable)
+        .bind(&data.id)
+        .execute(&pool)
+        .await?;
+    let rows_aff = result.rows_affected();
+    Ok(rows_aff > 0)
 }
