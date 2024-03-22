@@ -312,3 +312,14 @@ pub async fn del(
     }
     return Json(ApiResponse::succ(Some("ok".to_string())));
 }
+
+// 重置密码
+pub async fn reset_pwd(){}
+
+
+// 个人资料修改
+pub async fn update_profile(){}
+
+
+// 分配角色
+pub async fn set_user_role(){}

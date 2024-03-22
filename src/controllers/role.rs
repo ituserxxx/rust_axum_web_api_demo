@@ -15,6 +15,8 @@ use crate::{
         user_roles_role_model,
     },
 };
+
+// 所有角色
 pub async fn all(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
 ) -> Json<ApiResponse<Vec<role_model::Role>>> {
@@ -23,6 +25,7 @@ pub async fn all(
         Err(err) => Json(ApiResponse::err(&format!("获取所有权限失败:{:?}", err))),
     };
 }
+// 当前用户权限树
 pub async fn permissions_tree(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
 ) -> Json<ApiResponse<Option<Vec<role_api::PermissionItem>>>> {
@@ -135,6 +138,8 @@ pub async fn permissions_tree(
     }
     return Json(ApiResponse::succ(Some(Some(rp_arr))));
 }
+
+// 角色列表
 pub async fn page_list(
     Extension(curr_user): Extension<comm_api::CurrentUser>,
     req: Query<role_api::RolePageReq>,

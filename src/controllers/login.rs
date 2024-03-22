@@ -67,6 +67,10 @@ pub async fn verify_captcha(
             return Json(ApiResponse::err(&error_msg));
         }
     };
+    // 检查是否启用状态
+    if uinfo.enable != 1 {
+        return Json(ApiResponse::err(&"用户状态异常"));
+    }
     let token = tools::jwt::en_token(uinfo.id).await;
     let rp = login_api::LoginResp { accessToken: token };
     return Json(ApiResponse::succ(Some(rp)));

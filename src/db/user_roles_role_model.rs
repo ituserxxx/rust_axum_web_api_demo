@@ -87,5 +87,5 @@ pub async fn delete_user_roles_by_user_id(
         .await?;
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
     let rows_affected = result.rows_affected();
-    Ok(rows_affected >0)
+    Ok(rows_affected > 0)
 }
