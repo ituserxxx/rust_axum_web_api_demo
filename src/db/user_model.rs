@@ -99,20 +99,18 @@ pub async fn update_enable_by_id(enable: bool, id: i64) -> Result<MySqlQueryResu
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
 }
 
-// 删除记录-通过 id
-pub async fn delete_user_by_id(id: i64) -> Result<MySqlQueryResult, sqlx::Error> {
-    let pool = DB_POOL
-        .lock()
-        .unwrap()
-        .as_ref()
-        .expect("DB pool not initialized")
-        .clone();
+// 删除记录-通过 id (需要加事务，所以 pool 从外面传进来)
+pub async fn delete_user_by_id(
+    pool: &mut Transaction<'_, MySql>,
+    id: i64,
+) -> Result<bool, sqlx::Error> {
     let result = sqlx::query("delete from user where id = ?")
         .bind(id)
-        .execute(&pool)
+        .execute(pool)
         .await?;
-    Ok(result)
     // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
+    let rows_affected = result.rows_affected();
+    Ok(rows_affected == 1)
 }
 
 // 新增用户（需要加事务，所以 pool 从外面传进来）

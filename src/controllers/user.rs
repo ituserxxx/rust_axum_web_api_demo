@@ -153,8 +153,7 @@ pub async fn add(
     if let Err(error) = req.validate() {
         return Json(ApiResponse::new(400, None, &format!("{}", error)));
     }
-    println!("req->{:?}", req);
-    println!("curr_user->{:?}", curr_user);
+
     let pool = DB_POOL
         .lock()
         .unwrap()
@@ -231,6 +230,82 @@ pub async fn add(
             )));
         }
     };
+
+    if let Err(commit_err) = tx.commit().await {
+        return Json(ApiResponse::err(&format!("事务提交失败: {:?}", commit_err)));
+    }
+    return Json(ApiResponse::succ(Some("ok".to_string())));
+}
+
+// 用户删除
+pub async fn del(
+    Extension(curr_user): Extension<comm_api::CurrentUser>,
+    Path(id): Path<i64>,
+) -> Json<ApiResponse<String>> {
+    let pool = DB_POOL
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("DB pool not initialized")
+        .clone();
+    let mut tx = match pool.begin().await {
+        Ok(tx) => tx,
+        Err(err) => return Json(ApiResponse::err(&format!("开启事务失败:{:?}", err))),
+    };
+    // 从删除 user 表删除
+    let del_user_ok = match user_model::delete_user_by_id(&mut tx, id).await {
+        Ok(is) => is,
+        Err(err) => {
+            if let Err(rollback_err) = tx.rollback().await {
+                return Json(ApiResponse::err(&format!(
+                    "事务回滚失败: {:?}",
+                    rollback_err
+                )));
+            }
+            return Json(ApiResponse::err(&format!("从user表删除失败:{:?}", err)));
+        }
+    };
+
+    // 从 user_roles 表删除关系
+    let del_user_roles_ok =
+        match user_roles_role_model::delete_user_roles_by_user_id(&mut tx, id).await {
+            Ok(is) => is,
+            Err(err) => {
+                if let Err(rollback_err) = tx.rollback().await {
+                    return Json(ApiResponse::err(&format!(
+                        "事务回滚失败: {:?}",
+                        rollback_err
+                    )));
+                }
+                return Json(ApiResponse::err(&format!("删除用户权限失败:{:?}", err)));
+            }
+        };
+    // 从 profile 表删除
+    let del_user_profile_ok = match profile_model::delete_profile_by_user_id(&mut tx, id).await {
+        Ok(is) => is,
+        Err(err) => {
+            if let Err(rollback_err) = tx.rollback().await {
+                return Json(ApiResponse::err(&format!(
+                    "事务回滚失败: {:?}",
+                    rollback_err
+                )));
+            }
+            return Json(ApiResponse::err(&format!(
+                " 从 profile 表删除失败:{:?}",
+                err
+            )));
+        }
+    };
+    // 这里统一判断是否删除成功，回滚
+    if !del_user_ok || !del_user_roles_ok || !del_user_profile_ok {
+        if let Err(rollback_err) = tx.rollback().await {
+            return Json(ApiResponse::err(&format!(
+                "事务回滚失败: {:?}",
+                rollback_err
+            )));
+        }
+        return Json(ApiResponse::err(&"删除失败"));
+    }
 
     if let Err(commit_err) = tx.commit().await {
         return Json(ApiResponse::err(&format!("事务提交失败: {:?}", commit_err)));

@@ -75,3 +75,17 @@ pub async fn add_user_role_by_struct(
     let new_id = result.last_insert_id();
     Ok(new_id)
 }
+
+// 删除用户权限关系记录-通过 user_id (需要加事务，所以 pool 从外面传进来)
+pub async fn delete_user_roles_by_user_id(
+    pool: &mut Transaction<'_, MySql>,
+    uid: i64,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query("delete from user_roles_role where userId = ?")
+        .bind(uid)
+        .execute(pool)
+        .await?;
+    // MySqlQueryResult { rows_affected: 1, last_insert_id: 3 }
+    let rows_affected = result.rows_affected();
+    Ok(rows_affected == 1)
+}

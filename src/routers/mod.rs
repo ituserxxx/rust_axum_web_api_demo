@@ -1,7 +1,7 @@
 use axum::{
     extract::Extension,
     middleware::{self, Next},
-    routing::{get, patch, post},
+    routing::{delete, get, patch, post},
     Router,
 };
 use tower::ServiceBuilder;
@@ -34,9 +34,8 @@ pub async fn init() -> Router {
 
     let user_router = Router::new()
         .route("/detail", get(user::detail))
-        .route("/", get(user::list))
-        .route("/:id", patch(user::state_patch))
-        .route("/", post(user::add))
+        .route("/", post(user::add).get(user::list))
+        .route("/:id", patch(user::state_patch).delete(user::del))
         .layer(middleware::from_fn(auth::auth_jwt));
 
     let role_router = Router::new()
