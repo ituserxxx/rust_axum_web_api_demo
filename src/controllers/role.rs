@@ -152,9 +152,9 @@ pub async fn page_list(
         tmp.code = ro.code;
         tmp.enable = ro.enable != 0;
         // 获取 permission ids
-        let perm_ids_result =
+        let pmids_result =
             role_permissions_permission::fetch_permission_ids_where_role_id(tmp.id).await;
-        let perm_ids = match perm_ids_result {
+        let perm_ids = match pmids_result {
             Ok(rows) => {
                 if !rows.is_empty() {
                     rows
@@ -169,6 +169,7 @@ pub async fn page_list(
                 )))
             }
         };
+        tmp.permissionIds = Some(perm_ids);
         list_item.push(tmp)
     }
     let mut rp = role_api::RolePageResp {

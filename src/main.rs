@@ -13,8 +13,7 @@ mod tools;
 async fn main() {
     // 初始化日志记录器
 
-    let filter = EnvFilter::from_default_env().add_directive(tracing::Level::ERROR.into());
-
+    let filter = EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into());
     tracing_subscriber::fmt()
         .with_env_filter(filter)
         .with_span_events(FmtSpan::CLOSE)

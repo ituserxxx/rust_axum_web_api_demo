@@ -30,7 +30,7 @@ pub struct RolePageReq {
     #[allow(non_snake_case)]
     pub pageSize: Option<i64>, //  可传：默认10
     pub name: Option<String>,
-    pub enable: Option<bool>,
+    pub enable: Option<i64>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]

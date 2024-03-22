@@ -1,4 +1,9 @@
 use crate::tools;
+use crate::{
+    api::resp::ApiResponse,
+    api::{comm_api, user_api},
+    db::{profile_model, role_model, user_model, user_roles_role_model, DB_POOL},
+};
 use axum::{
     extract::{Extension, Json, Path, Query, Request},
     middleware::{self, Next},
@@ -8,11 +13,6 @@ use sqlx::MySqlPool;
 use std::sync::Arc;
 use time::OffsetDateTime;
 use validator::Validate;
-use crate::{
-    api::resp::ApiResponse,
-    api::{comm_api, user_api},
-    db::{profile_model, role_model, user_model, user_roles_role_model, DB_POOL},
-};
 
 // 获取用户详情
 pub async fn detail(
@@ -89,7 +89,6 @@ pub async fn list(
         // 循环里面的逻辑其实跟 detail详情一样的，只是少了一个 currentRole 字段而已
         let mut tmp = user_api::UserListItem::default();
         let uid = u_profile.userId;
-        println!("uuuu-->{:?}", uid);
         // 通过uid获取 user信息
         let uinfo_result = user_model::find_info_by_id(uid).await;
         let uinfo = match uinfo_result {
